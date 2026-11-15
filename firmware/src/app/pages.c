@@ -4106,12 +4106,26 @@ static void draw_knobs(void)
             } else
                 text_fit(x + 3, cap_y(12, 28, &FONT_XS), &FONT_XS, k[i].val, 54, hot ? K_ACCENT : K_TEXT);
         }
+#if BOARD_SMK37
+        {   /* the knob that turns it (K5..K8), at the bar's left; the bar after it */
+            static const char *const KN[4] = {N_KNOB1, N_KNOB2, N_KNOB3, N_KNOB4};
+            int32_t lw = text_w(&FONT_XS, KN[i]), bx = cx - 24 + lw + 3, bwid = cx + 24 - bx;
+            cv_text(cx - 24, cap_y(38, 12, &FONT_XS), &FONT_XS, KN[i], hot ? K_ACCENT : K_DIM);
+            if (k[i].max > 0) {
+                int32_t bw = bwid * k[i].num / k[i].max;
+                cv_round(bx, 41, bwid, 6, 3, K_LINE);
+                if (bw > 0)
+                    cv_round(bx, 41, bw < 6 ? 6 : bw, 6, 3, hot ? K_ACCENT : K_FAINT);
+            }
+        }
+#else
         if (k[i].max > 0) {
             int32_t bw = 44 * k[i].num / k[i].max;
             cv_round(cx - 22, 41, 44, 6, 3, K_LINE);
             if (bw > 0)
                 cv_round(cx - 22, 41, bw < 6 ? 6 : bw, 6, 3, hot ? K_ACCENT : K_FAINT);
         }
+#endif
     }
     cv_blit(0, KNB_Y);
 }
@@ -4642,6 +4656,14 @@ static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; 
      N_OCTDN " moves it back; BAR and BEAT jump to a place."},
     {B_OCTDN, PG_ANY, "Octave", "The keys an octave down.", "Hold both for 5 seconds for update mode."},
     {B_OCTUP, PG_ANY, "Octave", "The keys an octave up.", "Hold both for 5 seconds for update mode."},
+#if BOARD_SMK37
+    {NB + SB_KNOB_BANK, PG_ANY, "Pad map", "Shows what each pad does. Press again to hide it.",
+     "Top: Intro, grooves, Fill, Ending, FOLLOW. Bottom: progressions."},
+    {NB + SB_FADER_BANK, PG_ANY, "Faders", "F1-F4 set volumes. Press for the next bank.",
+     "A: D1-BA. B: C1-C4. C: M1, M2, reverb, chorus."},
+    {NB + SB_LEFT, PG_ANY, "Back", "One step back: the page, a list's row, a note.", 0},
+    {NB + SB_RIGHT, PG_ANY, "Next", "One step on: the page, a list's row, a note.", 0},
+#endif
 };
 #define NCARDS (sizeof CARD / sizeof CARD[0])
 static int card_find(int btn)                        /* the card for btn on this page, -1 none */
@@ -4654,6 +4676,12 @@ static int card_find(int btn)                        /* the card for btn on this
 }
 static const char *const BTN_LABEL[NB] = {N_FX, N_SEL, N_ENV, N_LFO, N_EDIT, N_GLO, N_HOME, N_SAVE, N_ARP, N_SEQ,
                                           N_PLAY, N_REC, N_OCTDN, N_OCTUP};
+#if BOARD_SMK37                                      /* (a card's button: an FM-1 one, or one of the SMK-37's four) */
+static const char *const SB_LABEL[NSB] = {"KNOB BANK", "FADER BANK", "<", ">"};
+#define CARD_LABEL(b) ((b) < NB ? BTN_LABEL[b] : SB_LABEL[((b) - NB) % NSB])
+#else
+#define CARD_LABEL(b) BTN_LABEL[(b) % NB]
+#endif
 /* s in lines of w pixels (at spaces), from y; the y after (draw 0: only measured) */
 static int32_t wrap_do(int32_t x, int32_t y, int32_t w, const felucca_font_t *f, const char *s, uint16_t c, int draw)
 {
@@ -4702,7 +4730,7 @@ static void draw_card(void)
         int32_t bh = i < 0 ? 20 : 42 + (n - 1) * 17 + (CARD[i].l2 ? 4 : 0), top = 4 + (MAIN_H - 8 - bh) / 2;
         if (top < 10)
             top = 10;
-        x = pill_o(18, top, 0, BTN_LABEL[(ui.card - 1) % NB], K_TEXT, K_TEXT);   /* (the button: an ink outline) */
+        x = pill_o(18, top, 0, CARD_LABEL(ui.card - 1), K_TEXT, K_TEXT);   /* (the button: an ink outline) */
         y = top + 30;
     }
     if (i >= 0) {

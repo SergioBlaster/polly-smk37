@@ -4162,6 +4162,9 @@ static struct {
     int32_t pitch, modw;               /* the wheels: pitch -127..127 (0 at rest), mod 0..127 */
     uint32_t wheel_t;                  /* the wheels' values last sent (sent again while away from rest) */
     uint8_t wheel_due;                 /* moved since: to send (at most every SMK_WHEEL_MS) */
+    uint32_t sb_t[NSB];                /* each extra button's press time */
+    uint8_t sb_used;                   /* held for its card (its release does nothing) */
+    uint32_t vol;                      /* K1 (MASTER) last said, + 1 (0: not read yet) */
 } smk;
 static void smk_reset(void)
 {
@@ -4210,6 +4213,20 @@ static void smk_pad(int p)
         else
             home_key(WHITE_K[w]);
     }
+}
+static void smk_select(int d);
+/* an extra button pressed (released before its card): KNOB BANK the pads' map, FADER BANK the next bank, < > a step */
+static void smk_button(int i)
+{
+    if (i == SB_KNOB_BANK)                       /* KNOB BANK: the pads' map, pinned or put away */
+        smk_map = (uint8_t)!smk_map;
+    else if (i == SB_FADER_BANK) {               /* FADER BANK: the next bank (the map goes: one at a time) */
+        smk.fbank = (uint8_t)((smk.fbank + 1u) % SMK_NBANK);
+        memset(smk.flast, 0xFF, sizeof smk.flast);
+        smk_map = 0;
+        say(SMK_BANK_NAME[smk.fbank], SMK_BANK_WHAT[smk.fbank]);
+    } else
+        smk_select(i == SB_LEFT ? -1 : 1);
 }
 /* SELECT one step, as the encoder turns (HOME held aside: never the tempo) */
 static void smk_select(int d)
@@ -4263,23 +4280,38 @@ static void smk_wheels_send(void)
 }
 static void smk_input(void)
 {
-    uint32_t sb = plat_smk_buttons(), sp = sb & ~smk.sbtn, ph = plat_pad_hits(), i, ok, och;
+    uint32_t sb = plat_smk_buttons(), prev = smk.sbtn, ph = plat_pad_hits(), i, ok, och;
     uint64_t kb = plat_keybed();
     int32_t pitch, modw;
     smk.sbtn = sb;
     plat_keybed_hits();                          /* (the keys: held states below; their latched presses unused) */
-    if (sp >> SB_KNOB_BANK & 1u)                 /* KNOB BANK: the pads' map, pinned or put away */
-        smk_map = (uint8_t)!smk_map;
-    if (sp >> SB_FADER_BANK & 1u) {              /* FADER BANK: the next bank (the map goes: one at a time) */
-        smk.fbank = (uint8_t)((smk.fbank + 1u) % SMK_NBANK);
-        memset(smk.flast, 0xFF, sizeof smk.flast);
-        smk_map = 0;
-        say(SMK_BANK_NAME[smk.fbank], SMK_BANK_WHAT[smk.fbank]);
+    for (i = 0; i < NSB; i++) {                  /* the four extra buttons: as the FM-1's, on release; held alone a
+                                                  * second, unused: their help card, and the release does nothing */
+        uint32_t m = 1u << i, sr = (sb ^ prev) & m;
+        if (sr && (sb & m)) {
+            smk.sb_t[i] = plat_ms();
+            smk.sb_used &= (uint8_t)~m;
+            ui.card = 0;
+        } else if (sr) {
+            if (ui.card == NB + 1u + i)
+                ui.card = 0;                     /* its card: gone, nothing else */
+            else if (!(smk.sb_used & m))
+                smk_button((int)i);
+        } else if ((sb & m) && sb == m && !ui.btn && !ui.keys && !(smk.sb_used & m) &&
+                   plat_ms() - smk.sb_t[i] >= CARD_MS) {
+            ui.card = (uint8_t)(NB + 1u + i);
+            smk.sb_used |= (uint8_t)m;
+        }
     }
-    if (sp >> SB_LEFT & 1u)
-        smk_select(-1);
-    if (sp >> SB_RIGHT & 1u)
-        smk_select(1);
+    {   /* K1 (MASTER): the volume said when it turns */
+        uint32_t v = plat_master() * 100u / 4096u + 1u;
+        if (smk.vol && v != smk.vol) {
+            char t[8];
+            cat_s(itoa_u(v - 1u, t), "%");
+            say("VOLUME", t);
+        }
+        smk.vol = v;
+    }
     if ((ph >> SMK_PAD_HALF & 1u) && smk.half_t && plat_ms() - smk.half_t < SMK_HALF_MS)
         ph &= ~(1u << SMK_PAD_HALF);             /* (a re-trigger of the half pad: ignored) */
     for (i = 0; i < SMK_NPADS; i++)

@@ -1,0 +1,55 @@
+# The SMK-37 build: the screen says what to press without a manual. The knob row names its knobs (K5..K8); the four
+# buttons the FM-1 has not (KNOB BANK, FADER BANK, <, >) act on release and, held alone a second, show their help card
+# (card = NB + 1 + SB_*: 15..18) and their release then does nothing. The simulator fails on a card's words past its box.
+wait 300
+shot home_knobs.png
+# ---- KNOB BANK: tapped, the pads' map; held, its card (and the map stays as it was)
+sbtn KNOB_BANK
+expect smkmap 1
+sbtn KNOB_BANK
+expect smkmap 0
+sbtn KNOB_BANK down
+wait 1100
+expect card 15
+shot card_knob_bank.png
+sbtn KNOB_BANK up
+wait 50
+expect card 0
+expect smkmap 0
+# ---- FADER BANK: held, its card; the bank unchanged
+expect fbank 0
+sbtn FADER_BANK down
+wait 1100
+expect card 16
+shot card_fader_bank.png
+sbtn FADER_BANK up
+wait 50
+expect card 0
+expect fbank 0
+sbtn FADER_BANK
+expect fbank 1
+# ---- < and >: held, their cards; tapped, a page
+sbtn LEFT down
+wait 1100
+expect card 17
+shot card_left.png
+sbtn LEFT up
+wait 50
+expect card 0
+expect page 0
+sbtn RIGHT down
+wait 1100
+expect card 18
+shot card_right.png
+sbtn RIGHT up
+wait 50
+expect card 0
+expect page 0
+# ---- Setup and Status: the knobs named, the theme on K5
+tap GLO
+expect page 15
+shot setup_knobs.png
+sbtn RIGHT
+expect page 16
+expect knobs_shown 1
+shot status_theme.png

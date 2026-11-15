@@ -1403,9 +1403,15 @@ int main(int argc, char **argv)
                 printf("line %d: no SMK button %s\n", lineno, a);
                 return 2;
             }
-            smk_btn_held |= 1u << i;
-            run_ms(40);
-            smk_btn_held &= ~(1u << i);
+            if (!strcmp(b, "down"))              /* sbtn NAME [down|up]: held, let go; else tapped */
+                smk_btn_held |= 1u << i;
+            else if (!strcmp(b, "up"))
+                smk_btn_held &= ~(1u << i);
+            else {
+                smk_btn_held |= 1u << i;
+                run_ms(40);
+                smk_btn_held &= ~(1u << i);
+            }
             run_ms(40);
         } else if (!strcmp(cmd, "pad")) {          /* pad P [MS]: tapped, held MS (default 40) */
             int pd = atoi(a) & 15;
