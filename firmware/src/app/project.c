@@ -33,6 +33,9 @@ void project_defaults(void)
     proj.magic = PROJ_MAGIC;
     proj.format = PROJ_FORMAT;
     proj.leds = 1;
+#ifdef POLLY_THEME_DEFAULT                          /* (the simulator's dark screenshots: -DPOLLY_THEME_DEFAULT=1) */
+    proj.theme = POLLY_THEME_DEFAULT;
+#endif
     proj.trk = 4;                                    /* C1: a piano under the keys */
     proj.quant = ARR_Q_16;
     proj.rev_type = 2;                               /* hall */

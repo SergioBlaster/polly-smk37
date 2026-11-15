@@ -21,7 +21,7 @@ typedef struct {
     uint8_t ch;                          /* the channel the keys play, 0..15 */
     int8_t oct;                          /* the keys' octave, -3..3 */
     uint8_t leds;                        /* lights: 0 off, 1 notes and the buttons' glow, 2 notes only */
-    uint8_t rsv0;
+    uint8_t theme;                       /* the screen: 0 light, 1 dark (was a spare byte: older saves read light) */
     uint8_t program[GM_NCH], volume[GM_NCH], pan[GM_NCH], reverb[GM_NCH], chorus[GM_NCH];
     uint8_t song, pattern;                /* the selected song (0..ARR_SONGS-1) and user pattern (0..15) */
     uint8_t trk;                          /* the selected track (0..7): the keys play it, REC records into it */

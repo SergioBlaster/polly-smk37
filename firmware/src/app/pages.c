@@ -15,25 +15,41 @@
  * edit's flash, the knob last turned, REC, a chord you play over a progression, questions and messages). Ink and its
  * neutrals: everything that stays put (names, values, selections, the place PLAY starts). Slate / amber: Groove A /
  * Groove B, on their pills only (Intro, Fills, Ending: neutral outlined pills). Plum: the melodies */
-#define K_BG RGB(250, 244, 232)
-#define K_PANEL RGB(236, 228, 212)
-#define K_PANEL2 RGB(222, 211, 192)                  /* a selected row or strip (with an ink outline) */
-#define K_LINE RGB(216, 205, 186)
-/* dim ink: secondary words (knob names, hints, the tag, the footer's jobs), 5.6:1 on K_BG, 4.8:1 on K_PANEL (WCAG's 4.5
- * for small text); K_FAINT, fainter, only for what may be missed (scroll bars, empty marks, separators, rules) */
-#define K_DIM RGB(112, 98, 84)
-#define K_FAINT RGB(150, 136, 118)
-#define K_TEXT RGB(72, 58, 48)
+/* the theme (Status page, KNOB 1: proj.theme): the same meanings in a light or a dark palette. The colours are read
+ * from kpal (theme_apply copies the theme's row in); the light one is the default, as before */
+enum { KC_BG, KC_PANEL, KC_PANEL2, KC_LINE, KC_DIM, KC_FAINT, KC_TEXT, KC_ACCENT, KC_ACCENT_L, KC_TEAL, KC_TEAL_T, KC_TEAL_M, KC_AMBER, KC_SLATE, KC_PLUM, KC_SLATE_L, KC_AMBER_L, KC_PLUM_P, KC_FLASH, KC_REC_T, NKC };
+static const uint16_t PALETTE[2][NKC] = {
+    {RGB(250, 244, 232), RGB(236, 228, 212), RGB(222, 211, 192), RGB(216, 205, 186), RGB(112, 98, 84), RGB(150, 136, 118), RGB(72, 58, 48), RGB(242, 120, 72), RGB(248, 196, 172), RGB(38, 166, 154), RGB(196, 230, 222), RGB(118, 196, 186), RGB(206, 138, 34), RGB(84, 118, 168), RGB(150, 112, 170), RGB(205, 212, 222), RGB(240, 218, 182), RGB(200, 178, 208), RGB(250, 196, 170), RGB(246, 214, 204)},
+    {RGB(26, 23, 20), RGB(44, 39, 33), RGB(66, 58, 49), RGB(74, 65, 55), RGB(178, 164, 146), RGB(128, 117, 103), RGB(240, 231, 216), RGB(242, 128, 82), RGB(112, 60, 40), RGB(66, 192, 178), RGB(30, 72, 66), RGB(44, 124, 114), RGB(224, 162, 62), RGB(112, 148, 204), RGB(182, 144, 204), RGB(50, 60, 78), RGB(80, 64, 36), RGB(72, 58, 84), RGB(122, 66, 44), RGB(92, 46, 36)}};
+static uint16_t kpal[NKC] = {RGB(250, 244, 232), RGB(236, 228, 212), RGB(222, 211, 192), RGB(216, 205, 186), RGB(112, 98, 84), RGB(150, 136, 118), RGB(72, 58, 48), RGB(242, 120, 72), RGB(248, 196, 172), RGB(38, 166, 154), RGB(196, 230, 222), RGB(118, 196, 186), RGB(206, 138, 34), RGB(84, 118, 168), RGB(150, 112, 170), RGB(205, 212, 222), RGB(240, 218, 182), RGB(200, 178, 208), RGB(250, 196, 170), RGB(246, 214, 204)};
 #define MSG_BAR 1
-#define K_ACCENT RGB(242, 120, 72)
-#define K_ACCENT_L RGB(248, 196, 172)                /* light coral: a hint where you act (the Song page's insertion line) */
-#define K_TEAL RGB(38, 166, 154)
-#define K_TEAL_T RGB(196, 230, 222)
-#define K_TEAL_M RGB(118, 196, 186)                  /* a playing bar's beats gone by */
-#define K_AMBER RGB(206, 138, 34)                    /* Groove B */
-#define K_SLATE RGB(84, 118, 168)                    /* Groove A */
-#define K_PLUM RGB(150, 112, 170)                    /* the melodies */
+#define K_BG kpal[KC_BG]
+#define K_PANEL kpal[KC_PANEL]
+#define K_PANEL2 kpal[KC_PANEL2]        /* a selected row or strip (with an ink outline) */
+#define K_LINE kpal[KC_LINE]
+#define K_DIM kpal[KC_DIM]              /* dim ink: secondary words (knob names, hints, the tag, the footer's jobs) */
+#define K_FAINT kpal[KC_FAINT]          /* only for what may be missed (scroll bars, empty marks, separators, rules) */
+#define K_TEXT kpal[KC_TEXT]
+#define K_ACCENT kpal[KC_ACCENT]
+#define K_ACCENT_L kpal[KC_ACCENT_L]    /* light coral: a hint where you act (the Song page's insertion line) */
+#define K_TEAL kpal[KC_TEAL]
+#define K_TEAL_T kpal[KC_TEAL_T]
+#define K_TEAL_M kpal[KC_TEAL_M]        /* a playing bar's beats gone by */
+#define K_AMBER kpal[KC_AMBER]          /* Groove B */
+#define K_SLATE kpal[KC_SLATE]          /* Groove A */
+#define K_PLUM kpal[KC_PLUM]            /* the melodies */
+#define K_SLATE_L kpal[KC_SLATE_L]      /* Groove A, B as a light tint (the song's line) */
+#define K_AMBER_L kpal[KC_AMBER_L]
+#define K_PLUM_P kpal[KC_PLUM_P]        /* the other melody, pale */
+#define K_FLASH kpal[KC_FLASH]          /* an edit's flash, light coral */
+#define K_REC_T kpal[KC_REC_T]          /* a strip being recorded, its tint */
 #define K_REC K_ACCENT                                /* REC (its dot, its line): you */
+
+static void theme_apply(int dark)                   /* (ui.c: the bands drawn again after a change) */
+{
+    for (int i = 0; i < NKC; i++)
+        kpal[i] = PALETTE[dark ? 1 : 0][i];
+}
 
 /* the pages (the spec's Buttons table): a button opens its first page; SELECT turns them */
 enum { P_HOME, P_SONG, P_SONG2, P_SONG3, P_LOOP, P_LOOP2, P_PATTERN, P_PATSET, P_TRACK, P_TRACK2, P_MIXER, P_TONE, P_MASTER,
@@ -1012,7 +1028,7 @@ static void home_bars(const bars_t *v)
                      flash ? K_BG : K_DIM);
         if (b == v->focus)                           /* its beats along its foot: the one now bold, those before lit */
             bar_beats(x, y, ch, bpb, v->fbeat, flash ? K_BG : v->cursor ? K_ACCENT : K_TEAL,
-                      flash ? RGB(250, 196, 170) : v->cursor ? K_LINE : K_TEAL_M);
+                      flash ? K_FLASH : v->cursor ? K_LINE : K_TEAL_M);
     }
     if (v->rows > v->vis) {                          /* the scroll bar: where the window is */
         int32_t th = v->vis * (ch + 2) - 2, bh = th * v->vis / v->rows, by = v->y0 + th * v->top / v->rows;
@@ -2080,7 +2096,7 @@ static void draw_pattern(void)
             cv_rect(2, y + bh / 2, 18, 1, K_TEXT);
         if (sel && !fl) {
             cv_round(X0 - 1, y - 1, W + 2, bh + 2, 3, arr_recording ? K_ACCENT : K_TEXT);
-            cv_round(X0, y, W, bh, 3, arr_recording ? RGB(246, 214, 204) : K_PANEL2);
+            cv_round(X0, y, W, bh, 3, arr_recording ? K_REC_T : K_PANEL2);
         } else if (empty && !fl) {
             cv_round(X0, y, W, bh, 3, K_LINE);
             cv_round(X0 + 1, y + 1, W - 2, bh - 2, 2, K_BG);
@@ -2264,7 +2280,7 @@ static void draw_trk_rec(void)
             cv_rect(nx, ny, nw, nh, fg);
         }
         if (plays)                                   /* its beats along its foot: the one now bold, those before lit */
-            bar_beats(x, y, ch, bpb, fbeat, fl ? K_BG : K_TEAL, fl ? RGB(250, 196, 170) : K_TEAL_M);
+            bar_beats(x, y, ch, bpb, fbeat, fl ? K_BG : K_TEAL, fl ? K_FLASH : K_TEAL_M);
     }
     cv_blit(0, MAIN_Y);
 }
@@ -2396,9 +2412,6 @@ static int32_t ov_y = 37, ov_h = 22, ov_bars = 4;  /* (Notes: higher, smaller, t
 #define OV_MIN 5
 #define LN_Y 66                                      /* the lane's four bars */
 #define LN_H 51
-#define K_SLATE_L RGB(205, 212, 222)                 /* Groove A, B as a light tint (the song's line) */
-#define K_AMBER_L RGB(240, 218, 182)
-#define K_PLUM_P RGB(200, 178, 208)                  /* the other melody, pale */
 static void strip_layout(const smap_t *m, int16_t *sx, int16_t *sw)
 {
     int n = m->n, gap = n > 16 ? 1 : 2, i;
@@ -2609,7 +2622,7 @@ static void draw_lead(int rec)
         int start = ((rec ? v.why >= 3 : !v.live) && v.why < 7 && (int)sb == m.b0[v.r]) || (int)sb == v.cin;
         int fl = (fbars >> (sb & 31u) & 1u) && (frows >> sc & 1u);
         int32_t x = RG_X + b * (RG_CW + 4), y = LN_Y, ch = LN_H, ax, aw, ay, ah, nh;
-        uint16_t fg = fl ? K_BG : K_PLUM, other = fl ? RGB(250, 196, 170) : K_PLUM_P;
+        uint16_t fg = fl ? K_BG : K_PLUM, other = fl ? K_FLASH : K_PLUM_P;
         uint16_t fill = fl ? K_ACCENT : plays ? K_TEAL_T : K_PANEL;
         bi = sb - m.b0[sc];
         b0 = bi * m.blen;
@@ -2653,7 +2666,7 @@ static void draw_lead(int rec)
                 cv_rect(nx, ny, nw, nh, pass ? fg : other);
             }
         if (plays)                                   /* its beats along its foot: the one now bold, those before lit */
-            bar_beats(x, y, ch, m.bpb, v.fbeat, fl ? K_BG : K_TEAL, fl ? RGB(250, 196, 170) : K_TEAL_M);
+            bar_beats(x, y, ch, m.bpb, v.fbeat, fl ? K_BG : K_TEAL, fl ? K_FLASH : K_TEAL_M);
     }
     cv_blit(0, MAIN_Y);
 }
@@ -2989,7 +3002,7 @@ static void ne_glow(int over)                        /* the notes an edit change
             !ne_box(f->t, ne_drums() ? 1u : f->len, f->note, &x, &w, &y))
             continue;
         if (!nfw.gone)
-            cv_rect(x - g, y - g, w + 2 * g, nd.nh + 2 * g, RGB(250, 196, 170));
+            cv_rect(x - g, y - g, w + 2 * g, nd.nh + 2 * g, K_FLASH);
         else {
             cv_rect(x, y, w, 1, K_ACCENT);
             cv_rect(x, y + nd.nh - 1, w, 1, K_ACCENT);
@@ -3592,7 +3605,7 @@ static int held_sect_ring(int s)                     /* section s's pill (SEC_FI
 static void draw_home_held(void)
 {
     static const uint8_t SECT[5] = {SEC_INTRO, SEC_A, SEC_B, SEC_FILL, SEC_END};
-    static const uint16_t RING[4] = {0, K_TEAL, K_ACCENT, K_TEXT};
+    const uint16_t RING[4] = {0, K_TEAL, K_ACCENT, K_TEXT};
     int32_t pw[5], tw = 0, gap, px = 8;
     int i;
     uint32_t h = hash(2166136261u, 32768u + (uint32_t)arr_playing);
@@ -3952,6 +3965,9 @@ static void song_page_knobs(knob_t *k)
         kv(&k[1], "MIDI out", proj.mout ? "on" : "off", proj.mout, 1);
         kv(&k[2], "Lights", LIGHTS_NAME[proj.leds % 3u], proj.leds, 2);
         kv(&k[3], "Click", CLICK_NAME[proj.click % 3u], proj.click, 2);
+        break;
+    case P_PANEL:                                    /* the screen's theme */
+        kv(&k[0], "Theme", proj.theme ? "dark" : "light", proj.theme, 1);
         break;
     default: break;
     }
