@@ -2535,7 +2535,7 @@ static void draw_song_line(const smap_t *m, const lplace_t *v, int k, uint32_t f
 }
 static void draw_lead(int rec)
 {
-    static const char *const WHY[8] = {"", "in a song only", "no sections yet", "starts with " N_PLAY, "after the Intro",
+    static const char *const WHY[8] = {"", "in a song only", "no sections yet", ("starts with " N_PLAY), "after the Intro",
                                        "the song is ending", "from the next bar", "starts at the next bar"};
     const song_t *g = csong();
     int k = (app.lead ? app.lead - 1 : 0) % ARR_LEADS, b, nl, s;
