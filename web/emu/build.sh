@@ -5,15 +5,24 @@
 # Same sources and flags as host/build_host.sh (-ffp-contract=off, like the device).
 set -e
 cd "$(dirname "$0")/../.."
-mkdir -p build/gen build/emu
+# BOARD=smk37: the SMK-37 build's UI and controls into build/emu-smk37 (its page: web/emu/smk37.html)
+OUT=build/emu DEFS=
+if [ "${BOARD:-fm1}" = smk37 ]; then OUT=build/emu-smk37 DEFS=-DBOARD_SMK37=1; fi
+mkdir -p build/gen $OUT
 [ -f build/gen/felucca_font.h ] || python3 tools/gen_font.py build/gen/felucca_font.h >/dev/null
 emcc -O2 -ffp-contract=off -std=gnu99 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
-    -DGM_HOST -DGM_WEB "-DGM_VERSION=\"$(printf %s "${GM_VERSION:-DEV}" | tr a-z A-Z)\"" -Ifirmware/src -Ifirmware/src/dsp -Ifirmware/src/dsp/eas -Ibuild/gen \
+    $DEFS -DGM_HOST -DGM_WEB "-DGM_VERSION=\"$(printf %s "${GM_VERSION:-DEV}" | tr a-z A-Z)\"" -Ifirmware/src -Ifirmware/src/dsp -Ifirmware/src/dsp/eas -Ibuild/gen \
     --no-entry -sSTANDALONE_WASM -sSTACK_SIZE=1048576 -sINITIAL_MEMORY=33554432 -sFILESYSTEM=0 \
-    -o build/emu/polly.wasm web/emu/polly_web.c firmware/src/dsp/gm.c firmware/src/dsp/chords.c firmware/src/dsp/xpose.c firmware/src/dsp/arr.c firmware/src/dsp/loops.c firmware/src/dsp/leads.c firmware/src/dsp/notes.c firmware/src/dsp/qybank.c firmware/src/dsp/qydec.c firmware/src/dsp/templates.c $(ls firmware/src/dsp/eas/*.c | grep -v "wt_22khz\|wt_200k_samples")
+    -o $OUT/polly.wasm web/emu/polly_web.c firmware/src/dsp/gm.c firmware/src/dsp/chords.c firmware/src/dsp/xpose.c firmware/src/dsp/arr.c firmware/src/dsp/loops.c firmware/src/dsp/leads.c firmware/src/dsp/notes.c firmware/src/dsp/qybank.c firmware/src/dsp/qydec.c firmware/src/dsp/templates.c $(ls firmware/src/dsp/eas/*.c | grep -v "wt_22khz\|wt_200k_samples")
 # the page, with the controls list taken from the firmware's own (ui.c's header comment), so it stays current;
 # the QY70 bank builder: the worker, its entry point and Polly's tools (GPL code, no Yamaha data: the tester's
 # own ROM is read in their browser)
+if [ -n "$DEFS" ]; then
+    cp web/emu/smk37.html $OUT/index.html
+    cp web/emu/worklet.js $OUT/
+    echo "emu: $OUT ($(wc -c < $OUT/polly.wasm) B wasm)"
+    exit 0
+fi
 python3 - <<'PY'
 import html, re
 ui = open("firmware/src/app/ui.c").read()

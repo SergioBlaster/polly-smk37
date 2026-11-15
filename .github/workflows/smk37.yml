@@ -91,6 +91,24 @@ jobs:
           cp -r build/scenarios/smk37-* build/smk-screens/ 2>/dev/null || true
           exit $fail
 
+      - uses: mymindstorm/setup-emsdk@v14
+        if: always()
+        with:
+          version: 3.1.64
+
+      - name: SMK-37 emulator (the browser page, web/emu/smk37.html)
+        if: always()
+        run: |
+          BOARD=smk37 sh web/emu/build.sh
+          ls -la build/emu-smk37
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smk37-emulator
+          path: build/emu-smk37/
+          if-no-files-found: warn
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -56,6 +56,51 @@ __attribute__((used, visibility("default"))) void web_enc(int role, int32_t n)
         enc_acc[role] += n;
 }
 __attribute__((used, visibility("default"))) void web_master(uint32_t v) { master = v > 4096u ? 4096u : v; }
+#if BOARD_SMK37
+/* the SMK-37's own controls (web/emu/smk37.html): the whole keybed with velocity, the pads, the faders, the wheels and
+ * the four buttons the FM-1 has not; the pads' colours and those buttons' lights back. As the host's script commands */
+__attribute__((used, visibility("default"))) uint32_t web_smk(void) { return 1; }
+__attribute__((used, visibility("default"))) void web_kbkey(int k, int down, int vel)
+{
+    if ((uint32_t)k >= SMK_NKEYBED)
+        return;
+    if (down) {
+        kb_vel[k] = vel < 1 ? 1 : vel > 127 ? 127 : vel;
+        kb_held |= 1ull << k;
+        kb_hits |= 1ull << k;
+        if (k >= 5 && k < 32)
+            held_keys |= 1u << (k - 5);
+    } else {
+        kb_held &= ~(1ull << k);
+        if (k >= 5 && k < 32)
+            held_keys &= ~(1u << (k - 5));
+    }
+}
+__attribute__((used, visibility("default"))) void web_sbtn(uint32_t m) { smk_btn_held = m; }
+__attribute__((used, visibility("default"))) void web_pad(int p, int down)
+{
+    if ((uint32_t)p >= SMK_NPADS)
+        return;
+    if (down) {
+        pad_hits |= 1u << p;
+        pad_held |= 1u << p;
+    } else
+        pad_held &= ~(1u << p);
+}
+__attribute__((used, visibility("default"))) void web_fader(int i, int v)
+{
+    if ((uint32_t)i < 4u)
+        fader_v[i] = v < 0 ? 0 : v > 127 ? 127 : v;
+}
+__attribute__((used, visibility("default"))) void web_wheels(int pitch, int modw)
+{
+    wheel_p = pitch;
+    wheel_m = modw;
+    wheel_new = 1;
+}
+__attribute__((used, visibility("default"))) uint8_t *web_pad_rgb(void) { return &pad_rgb[0][0]; }
+__attribute__((used, visibility("default"))) uint32_t web_smk_lit(void) { return smk_lit; }
+#endif
 __attribute__((used, visibility("default"))) uint32_t web_lit_buttons(void) { return lit_btn; }
 __attribute__((used, visibility("default"))) uint32_t web_lit_keys(void) { return lit_keys; }
 __attribute__((used, visibility("default"))) uint16_t *web_fb(void) { return fb; }

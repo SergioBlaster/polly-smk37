@@ -57,6 +57,16 @@ class Polly extends AudioWorkletProcessor {
       this.ex.web_enc(m.role, m.n | 0);
     } else if (m.type === "master") {
       this.ex.web_master(m.value | 0);
+    } else if (m.type === "kb" && this.ex.web_kbkey) {     // the SMK-37 build (smk37.html): keybed 0..36, velocity
+      this.ex.web_kbkey(m.key | 0, m.down ? 1 : 0, m.vel | 0);
+    } else if (m.type === "sbtn" && this.ex.web_sbtn) {
+      this.ex.web_sbtn(m.mask >>> 0);
+    } else if (m.type === "pad" && this.ex.web_pad) {
+      this.ex.web_pad(m.pad | 0, m.down ? 1 : 0);
+    } else if (m.type === "fader" && this.ex.web_fader) {
+      this.ex.web_fader(m.i | 0, m.v | 0);
+    } else if (m.type === "wheels" && this.ex.web_wheels) {
+      this.ex.web_wheels(m.pitch | 0, m.mod | 0);
     } else if (m.type === "bank") {                    // built (or forgotten, image null) while running
       this.port.postMessage({ type: "bank", bank: this.putBank(m.image) });
     }
@@ -77,6 +87,10 @@ class Polly extends AudioWorkletProcessor {
     if (this.frames >= 44100) {                       // the share of real time spent running the device
       msg.load = Math.round(100 * this.busy / (this.frames / 44.1));
       this.busy = this.frames = 0;
+    }
+    if (ex.web_pad_rgb) {                              // the SMK-37 build: the pads' colours, its own buttons' lights
+      msg.pads = new Uint8Array(this.mem.buffer, ex.web_pad_rgb(), 48).slice();
+      msg.smkLit = ex.web_smk_lit() >>> 0;
     }
     const transfer = [];
     if (blits !== this.sentBlits) {
