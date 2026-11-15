@@ -4577,9 +4577,16 @@ static void draw_footer(void)
 #define PG_TRACK (PG(P_PATTERN) | PG(P_PATSET) | PG(P_TRACK) | PG(P_TRACK2))
 #define CF_LEAD (1u << 31)                           /* (pages past NPAGES) only with a lead track selected */
 #define CF_NOLEAD (1u << 30)                         /* only without (PG_ANY: both, either) */
+#if BOARD_SMK37                                      /* (the SMK-37's longer names: shorter words, so the card fits) */
+#define CARD_ARP_L2 N_REC " writes them at the cursor (BAR, BEAT) or in time."
+#define CARD_LISTS_L1 "The knobs, then the actions. " N_SEL " runs the one picked."
+#else
+#define CARD_ARP_L2 N_REC " writes them at the cursor (BAR, BEAT), or in time as it plays."
+#define CARD_LISTS_L1 "The page's knobs, then its actions. " N_SEL " runs the one picked."
+#endif
 static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; } CARD[] = {
     {B_ARP, PG_ANY, "Progression", "Your chords, 1 to 16 bars, played in a loop. Play chords on the keys.",
-     N_REC " writes them at the cursor (BAR, BEAT), or in time as it plays."},
+     CARD_ARP_L2},
     {B_SEQ, PG(P_NOTES), "Notes", N_SELECT " picks a note. The knobs set place, pitch, length, velocity.",
      N_EDIT " deletes it. " N_SEL " + " N_SELECT " moves it. " N_SEQ " goes back to Band."},
     {B_EDIT, PG(P_NOTES), "Delete", "Tap to delete the selected note. " N_HOME " + " N_REC " brings it back.",
@@ -4596,7 +4603,7 @@ static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; 
     {B_GLO, PG_ANY, "Setup", "Clock, MIDI out, lights and the click. Turn " N_SELECT " for the status page.", 0},
     {B_SEL, PG_TRACK, "Lists", "This page as a list. MEMORY shows what fills the 16 places.",
      N_SELECT " moves, " N_ALGORITHM " changes, " N_HOME " goes back."},
-    {B_SEL, PG_ANY, "Lists", "The page's knobs, then its actions. " N_SEL " runs the one picked.",
+    {B_SEL, PG_ANY, "Lists", CARD_LISTS_L1,
      N_SELECT " moves, " N_ALGORITHM " changes, " N_HOME " goes back."},
     {B_SAVE, PG_SONG, "Save", "Tap to save.", "Nothing to copy on this page. A white key on its own adds a section."},
     {B_SAVE, PG_ANY, "Save", "Tap to save. Hold " N_SAVE " and press a white key to copy to that place.", 0},
