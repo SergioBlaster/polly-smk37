@@ -154,13 +154,9 @@ function button(x, y, w, h, name, kind, bit, top, bottom) {
 const SX = 520;
 [["KNOB BANK", "FADER BANK", 60], ["<", ">", 140], ["OCT-", "OCT+", 220]].forEach(([a, b, y]) => {
   const ka = a in SB ? "sb" : "fm", kb = b in SB ? "sb" : "fm";
-  button(SX, y, 62, 38, a, ka, ka === "sb" ? SB[a] : BTN[a], null, null);
-  button(SX + 82, y, 62, 38, b, kb, kb === "sb" ? SB[b] : BTN[b], null, null);
+  button(SX, y, 62, 38, a, ka, ka === "sb" ? SB[a] : BTN[a], a, null);
+  button(SX + 82, y, 62, 38, b, kb, kb === "sb" ? SB[b] : BTN[b], b, null);
 });
-label(svg, SX - 8, 72, "KNOB", 11, LABEL, "end"); label(svg, SX - 8, 86, "BANK", 11, LABEL, "end");
-label(svg, SX + 152, 72, "FADER", 11, LABEL, "start"); label(svg, SX + 152, 86, "BANK", 11, LABEL, "start");
-label(svg, SX - 8, 165, "<", 14, LABEL, "end"); label(svg, SX + 152, 165, ">", 14, LABEL, "start");
-label(svg, SX - 8, 245, "OCT-", 11, LABEL, "end"); label(svg, SX + 152, 245, "OCT+", 11, LABEL, "start");
 
 // K1..K8
 const knobs = {};
