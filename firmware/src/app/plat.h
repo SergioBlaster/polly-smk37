@@ -76,3 +76,5 @@ int plat_fader(int i);                 /* fader 0..3: 0..127, -1 while the readi
 int plat_wheels(int32_t *pitch, int32_t *modw);   /* 1 = new values: pitch -127..127 (0 at rest), mod 0..127 */
 void plat_pad_rgb(int pad, uint8_t r, uint8_t g, uint8_t b);   /* pad p's LED */
 #endif
+
+#include "btn_names.h"                 /* the controls' names on the screen, by board */

@@ -687,7 +687,7 @@ static void draw_header(void)
             r -= 6;
         }
         if (sel) {                                   /* HOME held: what it does with the keys, the song's */
-            itoa_u(proj.song + 1u, cat_s(t, "HOME + a key|S"));
+            itoa_u(proj.song + 1u, cat_s(t, N_HOME " + a key|S"));
             segs(8, 4, &FONT_B, t, K_TEXT);
         } else {
             int32_t x = 8;
@@ -1146,7 +1146,7 @@ static void draw_home_rec(void)
     cv_round(8, 6, 10, 10, 5, K_REC);
     loop_label(li, cat_s(t, "REC "));
     if (wait == 1)
-        cat_s(t + slen(t), "|starts with PLAY");
+        cat_s(t + slen(t), "|starts with " N_PLAY);
     else if (wait == 2 || wait == 5)
         cat_s(t + slen(t), "|starts at the next bar");
     else if (wait == 3)
@@ -1509,7 +1509,7 @@ static void draw_loop(void)
         cv_round(236, by, 3, bh < 6 ? 6 : bh, 1, K_FAINT);
     }
     if (!len)                                        /* an empty loop: what to do */
-        text_c(LG_X + LG_W / 2, y0 + rh + 18, &FONT_XS, ui.rec_chords ? "play a chord" : "REC, then play chords", K_DIM);
+        text_c(LG_X + LG_W / 2, y0 + rh + 18, &FONT_XS, ui.rec_chords ? "play a chord" : N_REC ", then play chords", K_DIM);
     cv_blit(0, MAIN_Y);
 }
 
@@ -2207,7 +2207,7 @@ static void draw_trk_rec(void)
         cv_round(8, 6, 10, 10, 5, K_REC);
         p = cat_s(cat_s(t, "REC "), TRACK_NAME[trk]);
         if (wait)
-            cat_s(p, play ? "|starts at the next bar" : "|starts with PLAY");
+            cat_s(p, play ? "|starts at the next bar" : "|starts with " N_PLAY);
         else
             itoa_u((uint32_t)pass, cat_s(p, "|pass "));
         x = segs(24, 2, &FONT_B, t, K_TEXT);
@@ -2522,7 +2522,7 @@ static void draw_song_line(const smap_t *m, const lplace_t *v, int k, uint32_t f
 }
 static void draw_lead(int rec)
 {
-    static const char *const WHY[8] = {"", "in a song only", "no sections yet", "starts with PLAY", "after the Intro",
+    static const char *const WHY[8] = {"", "in a song only", "no sections yet", "starts with " N_PLAY, "after the Intro",
                                        "the song is ending", "from the next bar", "starts at the next bar"};
     const song_t *g = csong();
     int k = (app.lead ? app.lead - 1 : 0) % ARR_LEADS, b, nl, s;
@@ -2589,7 +2589,7 @@ static void draw_lead(int rec)
             cat_s(cat_s(p, "|"), WHY[v.why]);
         segs(24, 2, &FONT_B, r1, K_TEXT);
         if (v.why == 1)
-            cv_text(8, 19, &FONT_S, "Start the song on Song, then REC", K_ACCENT);
+            cv_text(8, 19, &FONT_S, "Start the song on Song, then " N_REC, K_ACCENT);
         else {
             int32_t x = segs(8, 19, &FONT_S, t, m.n ? K_ACCENT : K_DIM), gw;
             cat_s(cat_s(r1, "grid "), GRID_NAME[proj.quant % ARR_NQ]);
@@ -4265,12 +4265,12 @@ static void page_footer(char *t)
             cat_s(cat_s(cat_s(t, ui.msg[0]), " "), ui.msg[1]);
             upcase(t);
         } else
-            cat_s(t, ui.ask_foot ? ui.ask_foot : "SEL yes|HOME no");
+            cat_s(t, ui.ask_foot ? ui.ask_foot : F_SEL " yes|" F_HOME " no");
         return;
     }
     if (home_shown()) {                              /* (HOME held: REC undoes, PLAY redoes; the keys: on screen, the
                                                       * progressions and the sections; SELECT, PRESETS: the encoders') */
-        cat_s(t, "REC undo|PLAY redo");
+        cat_s(t, F_REC " undo|" F_PLAY " redo");
         return;
     }
     if (ui.card) {
@@ -4279,56 +4279,56 @@ static void page_footer(char *t)
     }
     if (!ui.any_btn && ui.page == P_HOME && app.mode == ARR_FREE && !ui.take) {   /* the first screen: REC's job, and
                                                       * where the rest is said (its main band: "Play a chord") */
-        cat_s(t, "REC new prog|hold a button: help");
+        cat_s(t, F_REC " new prog|hold a button: help");
         return;
     }
     if (!lst.open && plat_ms() < ui.slots_until) {   /* MEMORY FULL said: where to see what fills it */
-        cat_s(t, "memory full|SEL memory: free one");
+        cat_s(t, "memory full|" F_SEL " memory: free one");
         return;
     }
     if (lst.open && lst.n) {                         /* (a list: the encoders' line is the list's; all said here) */
         int k = lst.row[lst.sel].kind;
-        cat_s(t, k == LK_NAME ? "ALGO letter|SEL next|HOME back"
-               : k == LK_ACTION ? "SELECT move|SEL do it|HOME back"
-               : k == LK_PICK && lst.row[lst.sel].id == A_STEP ? "SELECT move|ALGO set|HOME back"
-               : k == LK_PICK ? "ALGO pick|SEL do it|HOME back"
-               : k == LK_SUB ? "SELECT move|SEL open|HOME back"
-               : k == LK_SLOT ? (slot_kind[lst.row[lst.sel].id] == SLOT_NONE ? "SELECT move|HOME back"
-                                                                              : "SELECT move|SEL free|HOME back")
-               : "SELECT move|ALGO set|HOME back");
+        cat_s(t, k == LK_NAME ? F_ALGO " letter|" F_SEL " next|" F_HOME " back"
+               : k == LK_ACTION ? F_SELECT " move|" F_SEL " do it|" F_HOME " back"
+               : k == LK_PICK && lst.row[lst.sel].id == A_STEP ? F_SELECT " move|" F_ALGO " set|" F_HOME " back"
+               : k == LK_PICK ? F_ALGO " pick|" F_SEL " do it|" F_HOME " back"
+               : k == LK_SUB ? F_SELECT " move|" F_SEL " open|" F_HOME " back"
+               : k == LK_SLOT ? (slot_kind[lst.row[lst.sel].id] == SLOT_NONE ? F_SELECT " move|" F_HOME " back"
+                                                                              : F_SELECT " move|" F_SEL " free|" F_HOME " back")
+               : F_SELECT " move|" F_ALGO " set|" F_HOME " back");
         return;
     }
     switch (ui.page) {                               /* (recording: REC stops it, as it says) */
     case P_HOME:
-        cat_s(t, ui.take || ui.rec_chords ? "KEYS chords|REC stop"
-                 : app.mode == ARR_FREE ? "KEYS chords|REC new progression" : "KEYS chords|REC write");
+        cat_s(t, ui.take || ui.rec_chords ? "KEYS chords|" F_REC " stop"
+                 : app.mode == ARR_FREE ? "KEYS chords|" F_REC " new progression" : "KEYS chords|" F_REC " write");
         break;
     case P_LOOP: case P_LOOP2:
-        cat_s(t, ui.rec_chords ? "KEYS chords|REC stop|OCT cursor" : "KEYS chords|REC write|OCT cursor");
+        cat_s(t, ui.rec_chords ? "KEYS chords|" F_REC " stop|" F_OCT " cursor" : "KEYS chords|" F_REC " write|" F_OCT " cursor");
         break;
     case P_SONG: case P_SONG2: case P_SONG3:
-        cat_s(t, ui.song_rec ? "HOME+KEYS sections|REC stop" : "WHITE progression|BLACK mutes");
+        cat_s(t, ui.song_rec ? F_HOME "+KEYS sections|" F_REC " stop" : "WHITE progression|BLACK mutes");
         break;
     case P_PATTERN: case P_PATSET: case P_TRACK: case P_TRACK2:   /* "KEYS C1|REC record" (its sound: on the page) */
         if (trk_rec_shown() && !app.lead && loop_longer()) {   /* REC's screen: SEL makes it as long as the loop */
-            itoa_u((uint32_t)loop_longer(), cat_s(t, "SEL make it "));
-            cat_s(t + slen(t), " bars|REC stop");
+            itoa_u((uint32_t)loop_longer(), cat_s(t, F_SEL " make it "));
+            cat_s(t + slen(t), " bars|" F_REC " stop");
             break;
         }
         if (ui.follow_hint) {                        /* REC kept the track's type (it has notes): how to change that */
-            cat_s(cat_s(cat_s(t, "SEL clear "), TRACK_NAME[sel_trk()]), " to record as played");
+            cat_s(cat_s(cat_s(t, F_SEL " clear "), TRACK_NAME[sel_trk()]), " to record as played");
             break;
         }
-        cat_s(cat_s(cat_s(t, "KEYS "), TRACK_NAME[sel_trk()]), arr_recording || ui.rec_want ? "|REC stop" : "|REC record");
+        cat_s(cat_s(cat_s(t, "KEYS "), TRACK_NAME[sel_trk()]), arr_recording || ui.rec_want ? "|" F_REC " stop" : "|" F_REC " record");
         if (ui.page == P_PATTERN)                    /* (Band: SEQ again, its notes to fix) */
-            cat_s(t + slen(t), "|SEQ notes");
+            cat_s(t + slen(t), "|" F_SEQ " notes");
         break;
     case P_NOTES:                                    /* the keys: hear a note, enter one at an empty place; recording:
                                                       * as recorded, EDIT held erases */
         if (arr_recording || ui.rec_want)
-            cat_s(cat_s(cat_s(t, "KEYS "), TRACK_NAME[sel_trk()]), "|REC stop|EDIT held: erase");
+            cat_s(cat_s(cat_s(t, "KEYS "), TRACK_NAME[sel_trk()]), "|" F_REC " stop|" F_EDIT " held: erase");
         else
-            cat_s(t, ne.has ? "KEYS hear|EDIT delete|SEL+SELECT move" : "KEYS enter|SEQ Band");
+            cat_s(t, ne.has ? "KEYS hear|" F_EDIT " delete|" F_SEL "+" F_SELECT " move" : "KEYS enter|" F_SEQ " Band");
         break;
     case P_MIXER: case P_TONE:
         cat_s(t, "BLACK instrument");
@@ -4352,19 +4352,19 @@ static void enc_line(char *t)
     if (ui.ask || (lst.open && lst.n) || ui.card)    /* (a card: a knob turned with its button held is a combination) */
         return;
     if (held) {                                      /* HOME held: the tempo, the song */
-        cat_s(t, "SELECT tempo|PRESET song");
+        cat_s(t, F_SELECT " tempo|" F_PRESET " song");
         return;
     }
     if (p == P_NOTES) {                              /* (SELECT: the notes, not pages) */
-        cat_s(t, "SELECT note|ALGO instrument|PRESET zoom");
+        cat_s(t, F_SELECT " note|" F_ALGO " instrument|" F_PRESET " zoom");
         return;
     }
     if (n > 1)                                       /* the button's pages */
-        e = cat_s(t, "SELECT page");
+        e = cat_s(t, F_SELECT " page");
     else if (p == P_HOME)                            /* (HOME again: Song) */
-        e = cat_s(t, "HOME song");
+        e = cat_s(t, F_HOME " song");
     if (p >= P_PATTERN && p <= P_TONE)               /* the instrument (or melody) the keys and the page show */
-        e = cat_s(e, *t ? "|ALGO instrument" : "ALGO instrument");
+        e = cat_s(e, *t ? "|" F_ALGO " instrument" : F_ALGO " instrument");
     {
         const char *a = p == P_HOME || p == P_LOOP || p == P_LOOP2 ? "prog"
                         : song_pg(p) ? "section"
@@ -4373,7 +4373,7 @@ static void enc_line(char *t)
                         : p == P_TRACK && (sel_arr(&lb)->chan & 15u) != 9u ? "family"   /* (drums: none) */
                         : 0;
         if (a)
-            cat_s(cat_s(e, *t ? "|PRESET " : "PRESET "), a);
+            cat_s(cat_s(e, *t ? "|" F_PRESET " " : F_PRESET " "), a);
     }
 }
 
@@ -4390,8 +4390,8 @@ static void enc_line(char *t)
 #define BOT_X 6                                      /* the lines' left; 228 px wide */
 #define BOT_W 228
 #define BOT_PARTS 8
-static const char *const CTL_WORD[] = {"SELECT", "ALGO", "PRESET", "SEL", "HOME", "REC", "PLAY", "OCT", "KEYS", "WHITE",
-                                       "BLACK", "SAVE", "EDIT", "SEQ"};
+static const char *const CTL_WORD[] = {F_SELECT, F_ALGO, F_PRESET, F_SEL, F_HOME, F_REC, F_PLAY, F_OCT, "KEYS", "WHITE",
+                                       "BLACK", F_SAVE, F_EDIT, F_SEQ};
 static int ctl_is(const char *s, uint32_t n)         /* s[0..n) names a control */
 {
     for (uint32_t i = 0; i < sizeof CTL_WORD / sizeof CTL_WORD[0]; i++) {
@@ -4432,7 +4432,12 @@ static int32_t bot_part(int32_t x, int32_t y, const char *s, uint32_t n, const f
             for (k = 0; k < i - a && k < sizeof b - 1u; k++)
                 b[k] = s[a + k];
             b[k] = 0;
-            int enc = same(b, "SELECT") || same(b, "ALGO") || same(b, "PRESET");   /* (the three encoders) */
+#if BOARD_SMK37
+            for (k = 0; b[k]; k++)                   /* (btn_names.h: "SEQ_PLAY" is drawn "SEQ PLAY") */
+                if (b[k] == '_')
+                    b[k] = ' ';
+#endif
+            int enc = same(b, F_SELECT) || same(b, F_ALGO) || same(b, F_PRESET);   /* (the three encoders) */
             int32_t pad = enc ? BOT_PAD_E : BOT_PAD;
             w = text_w(&FONT_XS, b) + 2 * pad;
             if (draw) {                              /* an encoder round, a button or key a keycap */
@@ -4574,44 +4579,44 @@ static void draw_footer(void)
 #define CF_NOLEAD (1u << 30)                         /* only without (PG_ANY: both, either) */
 static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; } CARD[] = {
     {B_ARP, PG_ANY, "Progression", "Your chords, 1 to 16 bars, played in a loop. Play chords on the keys.",
-     "REC writes them at the cursor (BAR, BEAT), or in time as it plays."},
-    {B_SEQ, PG(P_NOTES), "Notes", "SELECT picks a note. The knobs set place, pitch, length, velocity.",
-     "EDIT deletes it. SEL + SELECT moves it. SEQ goes back to Band."},
-    {B_EDIT, PG(P_NOTES), "Delete", "Tap to delete the selected note. HOME + REC brings it back.",
+     N_REC " writes them at the cursor (BAR, BEAT), or in time as it plays."},
+    {B_SEQ, PG(P_NOTES), "Notes", N_SELECT " picks a note. The knobs set place, pitch, length, velocity.",
+     N_EDIT " deletes it. " N_SEL " + " N_SELECT " moves it. " N_SEQ " goes back to Band."},
+    {B_EDIT, PG(P_NOTES), "Delete", "Tap to delete the selected note. " N_HOME " + " N_REC " brings it back.",
      "Hold it while recording to erase notes as they play."},
     {B_SEQ, PG_ANY, "Band", "The groove's notes by instrument. BAR and BEAT move the cursor.",
-     "SELECT for length and name; SEQ again to fix notes."},
+     N_SELECT " for length and name; " N_SEQ " again to fix notes."},
     {B_EDIT, PG_ANY & ~CF_NOLEAD, "Melody", "The melody's sound, channel and velocity, and its notes in the song.",
-     "SEL has QUANTISE. ALGORITHM picks an instrument."},
+     N_SEL " has QUANTISE. " N_ALGORITHM " picks an instrument."},
     {B_EDIT, PG_ANY, "Sound", "The instrument's sound and its range.",
-     "SELECT for high key and channel; ALGORITHM past C4 for M1, M2."},
-    {B_LFO, PG_ANY, "Mixer", "Volume, pan and effect sends. Turn SELECT for the tone. Black keys pick the instrument.", 0},
+     N_SELECT " for high key and channel; " N_ALGORITHM " past C4 for M1, M2."},
+    {B_LFO, PG_ANY, "Mixer", "Volume, pan and effect sends. Turn " N_SELECT " for the tone. Black keys pick the instrument.", 0},
     {B_FX, PG_ANY, "Effects", "The reverb and the chorus every instrument sends to.", 0},
-    {B_ENV, PG_ANY, "Style", "Which style plays the grooves, Intro, fills and Ending. Turn PRESETS for the next style.", 0},
-    {B_GLO, PG_ANY, "Setup", "Clock, MIDI out, lights and the click. Turn SELECT for the status page.", 0},
+    {B_ENV, PG_ANY, "Style", "Which style plays the grooves, Intro, fills and Ending. Turn " N_PRESETS " for the next style.", 0},
+    {B_GLO, PG_ANY, "Setup", "Clock, MIDI out, lights and the click. Turn " N_SELECT " for the status page.", 0},
     {B_SEL, PG_TRACK, "Lists", "This page as a list. MEMORY shows what fills the 16 places.",
-     "SELECT moves, ALGORITHM changes, HOME goes back."},
-    {B_SEL, PG_ANY, "Lists", "The page's knobs, then its actions. SEL runs the one picked.",
-     "SELECT moves, ALGORITHM changes, HOME goes back."},
+     N_SELECT " moves, " N_ALGORITHM " changes, " N_HOME " goes back."},
+    {B_SEL, PG_ANY, "Lists", "The page's knobs, then its actions. " N_SEL " runs the one picked.",
+     N_SELECT " moves, " N_ALGORITHM " changes, " N_HOME " goes back."},
     {B_SAVE, PG_SONG, "Save", "Tap to save.", "Nothing to copy on this page. A white key on its own adds a section."},
-    {B_SAVE, PG_ANY, "Save", "Tap to save. Hold SAVE and press a white key to copy to that place.", 0},
+    {B_SAVE, PG_ANY, "Save", "Tap to save. Hold " N_SAVE " and press a white key to copy to that place.", 0},
     {B_REC, PG(P_HOME), "Write chords", "Writes into the progression playing, at the cursor or in time.",
-     "With none playing, starts a new one. HOME + REC undoes."},
+     "With none playing, starts a new one. " N_HOME " + " N_REC " undoes."},
     {B_REC, PG(P_LOOP) | PG(P_LOOP2), "Write chords", "Writes into the progression, at the cursor or in time as it plays.",
-     "HOME + REC undoes."},
+     N_HOME " + " N_REC " undoes."},
     {B_REC, PG_TRACK | CF_NOLEAD, "Record the instrument", "What the keys play goes into the selected instrument.",
-     "HOME + REC undoes one pass at a time."},
+     N_HOME " + " N_REC " undoes one pass at a time."},
     {B_REC, PG_TRACK | CF_LEAD, "Record the melody", "While the song plays, what you play goes into the section playing.",
-     "PLAY starts the song; PLAY FROM SECTION is in Song's list."},
+     N_PLAY " starts the song; PLAY FROM SECTION is in Song's list."},
     {B_REC, PG_SONG, "Record the sections",
-     "While the song plays, records what you pick with HOME + keys, and your mutes.", "HOME + REC undoes."},
-    {B_REC, PG_ANY, "Record", "Nothing to record on this page.", "HOME + REC undoes."},
+     "While the song plays, records what you pick with " N_HOME " + keys, and your mutes.", N_HOME " + " N_REC " undoes."},
+    {B_REC, PG_ANY, "Record", "Nothing to record on this page.", N_HOME " + " N_REC " undoes."},
     {B_PLAY, PG_ANY, "Play", "Starts and stops. On Song, plays from section 1, at the next bar if a progression is playing.",
-     "HOME + PLAY redoes."},
+     N_HOME " + " N_PLAY " redoes."},
     {B_OCTDN, PG(P_LOOP) | PG(P_LOOP2), "Cursor", "Moves the cursor back a beat. The chords don't change.",
-     "OCT+ moves it forward; BAR and BEAT jump to a place."},
+     N_OCTUP " moves it forward; BAR and BEAT jump to a place."},
     {B_OCTUP, PG(P_LOOP) | PG(P_LOOP2), "Cursor", "Moves the cursor forward a beat. The chords don't change.",
-     "OCT- moves it back; BAR and BEAT jump to a place."},
+     N_OCTDN " moves it back; BAR and BEAT jump to a place."},
     {B_OCTDN, PG_ANY, "Octave", "The keys an octave down.", "Hold both for 5 seconds for update mode."},
     {B_OCTUP, PG_ANY, "Octave", "The keys an octave up.", "Hold both for 5 seconds for update mode."},
 };
@@ -4624,8 +4629,8 @@ static int card_find(int btn)                        /* the card for btn on this
             return (int)i;
     return -1;
 }
-static const char *const BTN_LABEL[NB] = {"FX", "SEL", "ENV", "LFO", "EDIT", "GLO", "HOME", "SAVE", "ARP", "SEQ",
-                                          "PLAY", "REC", "OCT-", "OCT+"};
+static const char *const BTN_LABEL[NB] = {N_FX, N_SEL, N_ENV, N_LFO, N_EDIT, N_GLO, N_HOME, N_SAVE, N_ARP, N_SEQ,
+                                          N_PLAY, N_REC, N_OCTDN, N_OCTUP};
 /* s in lines of w pixels (at spaces), from y; the y after (draw 0: only measured) */
 static int32_t wrap_do(int32_t x, int32_t y, int32_t w, const felucca_font_t *f, const char *s, uint16_t c, int draw)
 {

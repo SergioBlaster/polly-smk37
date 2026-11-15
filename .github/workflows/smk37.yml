@@ -1,0 +1,103 @@
+# Polly SMK-37: builds the firmware (SMK-37 Pro and FM-1), checks that the FM-1 image is unchanged by the
+# screen-name work (byte for byte against the base branch), runs the tests, and shoots the SMK-37 screens.
+name: smk37
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      JIELI_TOOLCHAIN: ${{ github.workspace }}/../jieli/toolchain
+      AC79_SDK: ${{ github.workspace }}/../fw-AC79_AIoT_SDK
+      BASE_REF: origin/smk37
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python and fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libraqm0 libfribidi0 libharfbuzz0b >/dev/null
+          python3 -m pip install --quiet --break-system-packages Pillow mido
+          python3 -c "from PIL import features; print('raqm:', features.check('raqm'))"
+
+      - name: Cache toolchain
+        id: tc
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/../jieli
+          key: jieli-linux-toolchain-v1
+
+      - name: JieLi toolchain
+        if: steps.tc.outputs.cache-hit != 'true'
+        run: sh tools/get_toolchain.sh "$GITHUB_WORKSPACE/../jieli"
+
+      - name: AC79 SDK (the three files the package uses)
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse --branch AC79NN_SDK_V1.2.1_2023-12-13 \
+              https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK.git "$AC79_SDK"
+          git -C "$AC79_SDK" sparse-checkout set cpu/wl82/tools
+          ls -la "$AC79_SDK/cpu/wl82/tools/uboot.boot" "$AC79_SDK/cpu/wl82/tools/cfg_tool.bin"
+
+      - name: FM-1 build of the base branch (reference)
+        run: |
+          git worktree add ../base "$BASE_REF"
+          (cd ../base && ./build.sh)
+          cp ../base/build/polly.bin ../polly-fm1-base.bin
+
+      - name: FM-1 build
+        run: ./build.sh
+
+      - name: FM-1 image unchanged
+        run: |
+          if cmp build/polly.bin ../polly-fm1-base.bin; then
+            echo "FM-1 polly.bin identical to $BASE_REF"
+          else
+            echo "::error::the FM-1 image changed"; exit 1
+          fi
+
+      - name: Tests (FM-1 and SMK-37 simulator)
+        run: sh tests/run_tests.sh
+
+      - name: SMK-37 Pro build
+        run: |
+          mkdir -p dist && cp build/polly.fwsc dist/polly-fm1.fwsc
+          BOARD=smk37 ./build.sh
+          cp build/polly-smk37.fwsc dist/ && ls -la dist
+
+      - name: SMK-37 screens (every page, help card and list, in the SMK-37 simulator)
+        if: always()
+        run: |
+          [ -x build/host/polly_host_smk37 ] || sh host/build_host.sh smk37
+          mkdir -p ../smk-scripts
+          fail=0
+          for s in screens cards pages lists encoders first home; do
+            [ -f tests/scenarios/$s.polly ] || continue
+            # the FM-1 scripts' expects check FM-1 words; the shots and the simulator's own layout checks
+            # (a card's words past its box, columns over each other) stay
+            grep -v '^expect' tests/scenarios/$s.polly > ../smk-scripts/$s.polly
+            mkdir -p build/smk-screens/$s
+            build/host/polly_host_smk37 ../smk-scripts/$s.polly build/smk-screens/$s > build/smk-screens/$s/log.txt 2>&1 \
+              || { echo "::warning::$s: $(grep -m1 FAIL build/smk-screens/$s/log.txt)"; fail=1; }
+            grep FAIL build/smk-screens/$s/log.txt || true
+          done
+          cp -r build/scenarios/smk37-* build/smk-screens/ 2>/dev/null || true
+          exit $fail
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: polly-smk37-firmware
+          path: dist/
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smk37-screens
+          path: build/smk-screens/
+          if-no-files-found: warn

@@ -188,11 +188,7 @@ static void safe_main(void)
     draw_text_box(0, 102, 240, &FONT_S, "NO SOUND. USB IS ON:", C_WHITE, 1);
     draw_text_box(0, 122, 240, &FONT_S, "REINSTALL FROM THE", C_WHITE, 1);
     draw_text_box(0, 142, 240, &FONT_S, "WEB INSTALLER.", C_WHITE, 1);
-#if BOARD_SMK37
-    draw_text_box(0, 172, 240, &FONT_S, "SEQ PLAY: TRY AGAIN", C_HI, 1);
-#else
-    draw_text_box(0, 172, 240, &FONT_S, "PLAY: TRY AGAIN", C_HI, 1);
-#endif
+    draw_text_box(0, 172, 240, &FONT_S, N_PLAY ": TRY AGAIN", C_HI, 1);
     if (fm1_crash.magic == FM1_CRASH_MAGIC) {
         b[0] = 'P';
         b[1] = 'C';

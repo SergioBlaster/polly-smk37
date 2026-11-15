@@ -1249,7 +1249,7 @@ static void free_take_toggle(void)
     for (i = 0; i < ARR_LOOPS && sloops.loop[i].bars; i++)
         ;
     if (i == ARR_LOOPS) {
-        say_no("NO EMPTY PROG", "CLEAR ONE (SEL)");
+        say_no("NO EMPTY PROG", "CLEAR ONE (" N_SEL ")");
         return;
     }
     ui.take_loop = (uint8_t)i;
@@ -1718,7 +1718,7 @@ static void song_rec_toggle(void)
             arr_mode_song(g, app.row < g->nrows ? app.row : 0);
     }
     ui.song_rec = 1;
-    say("REC SECTIONS", arr_playing ? "HOME + keys" : "PLAY, HOME + keys");
+    say("REC SECTIONS", arr_playing ? N_HOME " + keys" : N_PLAY ", " N_HOME " + keys");
 }
 /* SONG's knobs: SECTION (the cursor; the END row after the last), PROG, GROOVE, REPEAT; page 2: TRANSPOSE (the cursor
  * section's own; PRESETS steps the sections), the song's INTRO, ENDING, AT END (the song itself: HOME + PRESETS) */
@@ -2116,7 +2116,7 @@ static void slot_style(int s, int to)
         return;                                  /* missing or damaged (said): nothing changes */
     if (slot_unsaved(s)) {
         if (arr_playing) {
-            say_no("UNSAVED", "SAVE FIRST");
+            say_no("UNSAVED", N_SAVE " FIRST");
             return;
         }
         if (save_all() != 0) {
@@ -2324,7 +2324,7 @@ static void yours_poll(void)
     else
         cat_s(itoa_u((uint32_t)n, cat_s(q, "KEEP YOUR ")), " EDITED GROOVES?");
     upcase(q);
-    cat_s(cat_s(cat_s(foot, "SEL keep|HOME use "), style_label(i)), "'s");
+    cat_s(cat_s(cat_s(foot, F_SEL " keep|" F_HOME " use "), style_label(i)), "'s");
     ask2(q, do_grooves_keep, do_grooves_style, foot);
 }
 /* another song, d on (PRESETS with HOME held); while playing it waits for the stop (a
@@ -3542,7 +3542,7 @@ static void copy_to(int n)
         } else
             do_copy_pattern();
     } else
-        say_no("COPY", "ON HOME, ARP, SEQ");
+        say_no("COPY", "ON " N_HOME ", " N_ARP ", " N_SEQ);
 }
 
 /* the record grid (Pattern page KNOB 1): clockwise finer, 1/8 .. 1/32, then off */
@@ -4119,7 +4119,7 @@ static void do_undo(int redo);
 #if BOARD_SMK37
 /* ------------------------------------------------------------- SMK-37 --- */
 /* The M-Vave SMK-37's controls beyond the FM-1's (plat.h SMK section). The FM-1's keep their Polly meaning, HOME held +
- * a key included, so the manual applies; the screens keep the FM-1's button names (SMK37.md translates).
+ * a key included, so the manual applies; the screens say the SMK-37's printed names (btn_names.h).
  *   keys           all 37: the middle 27 are the FM-1's (F3..G5), the outer ten (C3..E3, G#5..C6) play as they do,
  *                  in chords and notes alike; the instruments' notes with the keys' velocity
  *   pads           the keybed's shortcuts (HOME held + a key) without HOME, laid out as HOME held shows them:

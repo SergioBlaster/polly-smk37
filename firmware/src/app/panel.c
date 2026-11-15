@@ -3,10 +3,10 @@
 /* Physical panel: which matrix button / encoder carries which printed label (plat.h's
  * B_* / EN_*). HARDWARE CALIBRATION (hold OCT- and OCT+ while powering on) asks for each
  * label in turn; the table is kept in flash (OBJ_PANEL) and in .noinit. */
-static const char *const B_NAME[NB] = {"FX", "SEL", "ENV", "LFO", "EDIT", "GLO", "HOME", "SAVE",
-                                        "ARP", "SEQ", "PLAY", "REC", "OCT-", "OCT+"};
-static const char *const E_NAME[NE] = {"SELECT", "ALGORITHM", "PRESETS", "KNOB 1", "KNOB 2",
-                                        "KNOB 3", "KNOB 4"};
+static const char *const B_NAME[NB] = {N_FX, N_SEL, N_ENV, N_LFO, N_EDIT, N_GLO, N_HOME, N_SAVE,
+                                        N_ARP, N_SEQ, N_PLAY, N_REC, N_OCTDN, N_OCTUP};
+static const char *const E_NAME[NE] = {N_SELECT, N_ALGORITHM, N_PRESETS, N_KNOB1, N_KNOB2,
+                                        N_KNOB3, N_KNOB4};
 #if BOARD_SMK37
 #define PANEL_MAGIC 0x50534D31u          /* "PSM1" (the SMK-37 build): never an FM-1 table; bump when PANEL_DEFAULT changes */
 #else

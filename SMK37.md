@@ -20,8 +20,10 @@ models, and refuse an FM-1 package (and an SMK package on an FM-1).
 
 ## Controls
 
-The FM-1's controls keep their Polly meaning, so the manual applies; the screen keeps the FM-1's names (HOME,
-SEL, ENV, ...). Holding HOME and pressing a key works as on the FM-1. The SMK-37 adds the rest.
+The FM-1's controls keep their Polly meaning, so the manual applies. The screen says the SMK-37's printed names
+(PATCH, SCALE, CHORD, K2, ...) for them: read the manual's HOME as PATCH, SEL as SCALE, and so on, by the table
+below (`firmware/src/app/btn_names.h` holds the names). Holding PATCH and pressing a key works as HOME + a key on
+the FM-1. The SMK-37 adds the rest.
 
 | SMK-37 | Polly |
 | --- | --- |
@@ -50,7 +52,7 @@ SEL, ENV, ...). Holding HOME and pressing a key works as on the FM-1. The SMK-37
 | Pitch wheel | pitch bend, +-2 semitones, on every channel but the drums', at once |
 | Mod wheel | vibrato (General MIDI modulation, up to +-1/2 semitone), on every channel but the drums' |
 | OCTAVE- + OCTAVE+ held 5 s | UPDATE MODE |
-| OCTAVE- + OCTAVE+ held at power-on | HARDWARE CALIBRATION: teach the buttons and knobs again (it asks by the FM-1's names) |
+| OCTAVE- + OCTAVE+ held at power-on | HARDWARE CALIBRATION: teach the buttons and knobs again (it asks by the SMK-37's names) |
 
 Only one bank mode is up at a time: FADER BANK puts the map away. The wheels never change what is saved: the
 bend is gone when the pitch wheel is back at rest, the vibrato with the mod wheel at zero. The SMK-37 has no key
