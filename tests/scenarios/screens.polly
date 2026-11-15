@@ -296,7 +296,7 @@ turn K4 1
 shot setup_click.png
 turn SELECT 1
 expect page 16
-expect knobs_shown 0
+expect knobs_shown 1
 shot status.png
 # ---- (2) the help cards: each button held alone (the simulator fails on words past the box)
 tap EDIT
