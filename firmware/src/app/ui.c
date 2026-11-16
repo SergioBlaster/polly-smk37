@@ -1585,7 +1585,7 @@ static int free_knob(int k, int32_t e)
         return 1;
     }
     if (k == 3) {                                /* KNOB 4: the black keys spelled auto, sharps, flats */
-        int v = clampi(fp.spell + (e > 0 ? 1 : -1), 0, 2);
+        int v = clampi(fp.spell + (int)e, 0, 2);
         if (v == fp.spell)
             return 0;
         fp.spell = (uint8_t)v;

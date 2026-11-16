@@ -3784,10 +3784,8 @@ static void free_what(const uint8_t *v, int n, char *big, char *sub)
         else
             cat_s(sub, IVL_NAME[d]);
     } else if (n >= 3) {
-        if (free_chord(&c))
+        if (free_chord(&c))                          /* (no chord: the notes alone say it) */
             chord_name(c, big);
-        else
-            cat_s(big, "?");
         for (int i = 0; i < n; i++) {                /* the notes, lowest first ("A3 C4 E4 G4") */
             e = sub;
             while (*e)
@@ -3851,9 +3849,10 @@ static void draw_free(void)
             text_lines(52, 54, 84, &FONT_XS, "K5 picks the sound, pad 7 again: back", K_DIM);
         } else {
             const felucca_font_t *f = text_w(&FONT_L, big) <= 84 ? &FONT_L : text_w(&FONT_B, big) <= 84 ? &FONT_B : &FONT_S;
-            text_c(52, f == &FONT_L ? 16 : 24, f, big, col);
+            if (*big)
+                text_c(52, f == &FONT_L ? 16 : 24, f, big, col);
             if (*sub)
-                text_lines(52, 62, 84, &FONT_XS, sub, held ? K_TEXT : K_DIM);
+                text_lines(52, *big ? 62 : 30, 84, *big ? &FONT_XS : &FONT_S, sub, held ? K_TEXT : K_DIM);
         }
         cv_blit(0, MAIN_Y);
         return;
@@ -3865,7 +3864,9 @@ static void draw_free(void)
         cv_blit(0, MAIN_Y);
         return;
     }
-    if (text_w(&FONT_L, big) <= 208)
+    if (!*big)
+        ;
+    else if (text_w(&FONT_L, big) <= 208)
         text_c(120, 18, &FONT_L, big, col);
     else
         text_c(120, 28, &FONT_B, big, col);
