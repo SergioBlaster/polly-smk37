@@ -26,7 +26,7 @@ if not re.fullmatch(r"SMK-37 Pro_\d+", produto):
 if b"FELUCCA-LOADER-1" not in raw:
     sys.exit(f"{pkg}: sem o carregador de atualização")
 
-saida = RAIZ / "instalador"
+saida = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "instalador"   # (another folder: to try it out)
 saida.mkdir(exist_ok=True)
 shutil.copy(pkg, saida / "polly-smk37.fwsc")
 
@@ -59,7 +59,7 @@ troca('  $("stockgo").disabled = !stock;\n', '')
 PT = {
     "title": "Instalar o Polly no SMK-37 Pro", "langname": "English",
     "intro": "Ligue o SMK-37 Pro a este computador com um cabo USB. Esta página funciona no Chrome ou no Edge.",
-    "warn": "Até terminar, deixe o computador acordado, o cabo USB conectado e esta aba aberta.",
+    "warn": "Até terminar, deixe o computador acordado, o cabo USB conectado e esta aba aberta. Leva alguns minutos; a gravação é a parte mais longa.",
     "install": "Instalar",
     "direct": "Ligue o cabo direto no computador (sem hub). Antes, desligue o Bluetooth do PC e feche outros programas que usam MIDI.",
     "beta": "Firmware não oficial e experimental: use por sua conta e risco.",
@@ -83,11 +83,12 @@ PT = {
     "badpkg": "O arquivo do firmware está com problema. Recarregue a página.",
     "leave": "Gravando. Não feche a página.",
     "license": "GPL-3.0, sem garantia. Código:",
+    "details": "Detalhes (cada passo)",
 }
 EN = {
     "title": "Install Polly on the SMK-37 Pro", "langname": "Português",
     "intro": "Connect the SMK-37 Pro to this computer with a USB cable. This page works in Chrome or Edge.",
-    "warn": "Until it's done, keep the computer awake, the USB cable in and this tab open.",
+    "warn": "Until it's done, keep the computer awake, the USB cable in and this tab open. It takes a few minutes; writing is the longest part.",
     "install": "Install",
     "direct": "Connect the cable straight to the computer (no hub). First, turn off the computer's Bluetooth and close other apps that use MIDI.",
     "beta": "Unofficial, experimental firmware: use it at your own risk.",
@@ -111,6 +112,7 @@ EN = {
     "badpkg": "The firmware file is damaged. Reload the page.",
     "leave": "Writing. Don't close the page.",
     "license": "GPL-3.0, no warranty. Source:",
+    "details": "Details (every step)",
 }
 assert PT.keys() == EN.keys()
 texto = "const TEXT = " + json.dumps({"pt": PT, "en": EN}, ensure_ascii=False, indent=2) + ";\n"
@@ -122,6 +124,20 @@ troca(html[html.index('let lang = "en";'):html.index("\n", html.index('let lang 
 troca('$("lang").textContent = t("other");', '$("lang").textContent = t("langname"); document.title = t("title");')
 troca('lang = lang === "ja" ? "en" : "ja";', 'lang = lang === "pt" ? "en" : "pt";')
 troca("say(`Polly ${meta.version}`);", 'sayK("ready", `Polly ${meta.version} (${meta.product})`);')
+
+# the progress on one line ("Gravando 42%"), the bar, and the step-by-step log folded away (it listed every block)
+troca("  pre { color: var(--dim); font-size: 12px; white-space: pre-wrap; margin-top: 16px; }",
+      "  pre { color: var(--dim); font-size: 12px; white-space: pre-wrap; margin: 8px 0 0; max-height: 14em; overflow: auto; }\n"
+      "  details { margin-top: 16px; color: var(--dim); font-size: 13px; }\n"
+      "  summary { cursor: pointer; }\n"
+      "  #status { font-weight: 600; }")
+troca('  <pre id="log"></pre>', '  <details><summary data-t="details"></summary><pre id="log"></pre></details>')
+troca("      log(`${k} ${a ?? \"\"}`);",
+      "      if (k !== \"verify\" && k !== \"write\") log(`${k} ${a ?? \"\"}`);   /* (the blocks: in the percentage) */")
+troca('      if (k === "verify") { sayK("verify"); $("bar").value = (a / total) * 100; }',
+      '      if (k === "verify") { $("bar").value = (a / total) * 100; sayK("verify", ` ${Math.round($("bar").value)}%`); }')
+troca('      if (k === "write") { sayK("write"); $("bar").value = ((74 + a) / total) * 100; }',
+      '      if (k === "write") { $("bar").value = ((74 + a) / total) * 100; sayK("write", ` ${Math.round($("bar").value)}%`); }')
 
 (saida / "index.html").write_text(html, encoding="utf-8")
 print(f"instalador: {saida / 'index.html'} ({len(html)} B), firmware {produto}, {len(raw)} B")
