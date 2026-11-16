@@ -1483,7 +1483,8 @@ static void free_list(void)                      /* fp.note: the notes held, low
             fp.note[n++] = (uint8_t)i;
     fp.n = (uint8_t)n;
     if (n) {
-        memcpy(fp.last, fp.note, (size_t)n);
+        for (int i = 0; i < n; i++)
+            fp.last[i] = fp.note[i];
         fp.nlast = (uint8_t)n;
     }
 }

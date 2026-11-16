@@ -66,6 +66,14 @@ jobs:
         continue-on-error: true
         run: sh tests/run_tests.sh
 
+      - name: SMK-37 scenarios' failures (the lines that failed, from their logs)
+        if: always()
+        run: |
+          for f in build/host/scenario-smk37-*.log; do
+            [ -f "$f" ] || continue
+            if grep -q 'FAIL' "$f"; then echo "== $f"; grep -n -i 'fail\|expect' "$f" | head -40; fi
+          done
+
       - name: SMK-37 Pro build
         run: |
           mkdir -p dist && cp build/polly.fwsc dist/polly-fm1.fwsc

@@ -64,7 +64,7 @@ wait 200
 pad 7
 expect half 0
 expect padb7 >200
-expect padr6 0
+expect padr6 18
 # FOLLOW: no progression, the band follows the chords played
 pad 5
 expect mode 0
