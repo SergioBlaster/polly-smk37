@@ -1,6 +1,6 @@
 # Polly no SMK-37 Pro — plano de port
 
-Data: 15/11/2026 · Alvo: M-VAVE SMK-37 Pro (o teclado do Sergio) · Origem: [charlesvestal/fm1-polly](https://github.com/charlesvestal/fm1-polly) v0.6.4
+Data: 15/11/2026 · Alvo: M-VAVE SMK-37 Pro · Origem: [charlesvestal/fm1-polly](https://github.com/charlesvestal/fm1-polly) v0.6.4
 
 ## 1. O que já existe (descoberto no levantamento)
 
