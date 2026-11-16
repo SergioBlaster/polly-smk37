@@ -1475,14 +1475,15 @@ static int smk_key_vel(int k);
 #endif
 #if BOARD_SMK37
 /* ---- Free play (pages.c fp): the keys play proj.free_prog on FREE_CH, the band stopped; nothing else changes */
-static void free_list(void)                      /* fp.note: the notes held, lowest first; once any: also the last */
+static void free_list(int on)                    /* fp.note: the notes held, lowest first; a key pressed: also the
+                                                  * last (the chord as played stays shown as its keys are let go) */
 {
     int n = 0;
     for (int i = 0; i < 128 && n < FREE_MAXN; i++)
         if (fp.held[i])
             fp.note[n++] = (uint8_t)i;
     fp.n = (uint8_t)n;
-    if (n) {
+    if (n && on) {
         for (int i = 0; i < n; i++)
             fp.last[i] = fp.note[i];
         fp.nlast = (uint8_t)n;
@@ -1514,7 +1515,7 @@ static void free_key(int k, int on)
         if (fp.held[n] && !--fp.held[n])
             gm_midi(0x80u | FREE_CH, (uint32_t)n, 0);
     }
-    free_list();
+    free_list(on);
 }
 static void free_quiet(void)                     /* its notes off, the keys let go of */
 {
