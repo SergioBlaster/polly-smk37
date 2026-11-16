@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +16,7 @@ body { background: var(--ground); color: var(--ink); margin: 0; padding: 20px 16
 main { max-width: 1500px; margin: 0 auto; }
 header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1rem; margin: 0 0 .8rem; }
 h1 { font-size: 1.6rem; margin: 0; }
+.lang { margin-left: auto; font: inherit; font-size: .9rem; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
 header p { margin: 0; color: var(--muted); }
 .device { position: relative; width: 100%; aspect-ratio: 1700 / 780; user-select: none; -webkit-user-select: none; touch-action: none; }
 .device svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -44,46 +45,47 @@ kbd { font: 600 .85em ui-monospace, Consolas, monospace; background: var(--card)
 <body>
 <main>
 <header>
-  <h1>Polly no SMK-37 Pro</h1>
-  <p>O mesmo código do firmware, rodando no navegador. A tela mostra o que o teclado vai mostrar.</p>
+  <h1 data-t="h1"></h1>
+  <p data-t="sub"></p>
+  <button class="lang" id="lang" type="button"></button>
 </header>
 
 <div class="device" id="device">
-  <svg id="panel" viewBox="0 0 1700 780" role="application" aria-label="Painel do SMK-37 Pro"></svg>
-  <canvas id="screen" width="240" height="240" aria-label="Tela"></canvas>
-  <div class="start" id="start"><button id="go">Ligar</button></div>
+  <svg id="panel" viewBox="0 0 1700 780" role="application" data-a="panel"></svg>
+  <canvas id="screen" width="240" height="240" data-a="screen"></canvas>
+  <div class="start" id="start"><button id="go" data-t="go"></button></div>
 </div>
 
 <div class="bar">
-  <span id="status">Desligado. O som começa quando você liga.</span>
+  <span id="status"></span>
   <span id="midi"></span>
   <span id="cpu"></span>
-  <button id="reset" type="button">Restaurar fábrica</button>
+  <button id="reset" type="button" data-t="reset"></button>
 </div>
 
 <section class="help">
   <div>
-    <h2>Mouse</h2>
+    <h2 data-t="mouse"></h2>
     <ul>
-      <li>Botões, pads e teclas: clique. Mais embaixo na tecla = mais forte (velocity).</li>
-      <li>Para <b>segurar</b> um botão (ex.: PATCH + tecla): <kbd>Shift</kbd>+clique ou botão direito. Clique de novo para soltar.</li>
-      <li>Knobs: arraste para cima/baixo ou use a rodinha do mouse.</li>
-      <li>Faders e MOD: arraste. PITCH volta ao centro quando você solta.</li>
+      <li data-h="m1"></li>
+      <li data-h="m2"></li>
+      <li data-h="m3"></li>
+      <li data-h="m4"></li>
     </ul>
   </div>
   <div>
-    <h2>Teclado do PC</h2>
+    <h2 data-t="pc"></h2>
     <ul>
-      <li>Teclas: <kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> <kbd>D</kbd> <kbd>C</kbd>… a partir de C4, e <kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> <kbd>3</kbd> <kbd>E</kbd>… a partir de C5.</li>
-      <li><kbd>Espaço</kbd> SEQ PLAY, <kbd>Esc</kbd> PATCH (segure para os atalhos), <kbd>Enter</kbd> SCALE.</li>
-      <li><kbd>↑</kbd> <kbd>↓</kbd> giram K4, <kbd>←</kbd> <kbd>→</kbd> giram K3.</li>
+      <li data-h="p1"></li>
+      <li data-h="p2"></li>
+      <li data-h="p3"></li>
     </ul>
   </div>
   <div>
-    <h2>Teclado MIDI</h2>
+    <h2 data-t="midih"></h2>
     <ul>
-      <li>Um teclado MIDI ligado ao PC toca as 37 teclas (C3 a C6), com velocity, pitch bend e modulação.</li>
-      <li>Funciona no Chrome e no Edge. O navegador pede permissão para MIDI.</li>
+      <li data-t="d1"></li>
+      <li data-t="d2"></li>
     </ul>
   </div>
 </section>
@@ -91,6 +93,90 @@ kbd { font: 600 .85em ui-monospace, Consolas, monospace; background: var(--card)
 
 <script>
 "use strict";
+// ---------------------------------------------------------------- the page's language (English or Portuguese)
+const TEXT = {
+  "pt": {
+    "langname": "English",
+    "h1": "Polly no SMK-37 Pro",
+    "sub": "O mesmo código do firmware, rodando no navegador. A tela mostra o que o teclado vai mostrar.",
+    "panel": "Painel do SMK-37 Pro",
+    "screen": "Tela",
+    "go": "Ligar",
+    "going": "Ligando...",
+    "off": "Desligado. O som começa quando você liga.",
+    "on": "Ligado.",
+    "fail": "Não ligou: ",
+    "reset": "Restaurar fábrica",
+    "resetsure": "Clique de novo para apagar tudo",
+    "mouse": "Mouse",
+    "m1": "Botões, pads e teclas: clique. Mais embaixo na tecla = mais forte (velocity).",
+    "m2": "Para <b>segurar</b> um botão (ex.: PATCH + tecla): <kbd>Shift</kbd>+clique ou botão direito. Clique de novo para soltar.",
+    "m3": "Knobs: arraste para cima/baixo ou use a rodinha do mouse.",
+    "m4": "Faders e MOD: arraste. PITCH volta ao centro quando você solta.",
+    "pc": "Teclado do PC",
+    "p1": "Teclas: <kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> <kbd>D</kbd> <kbd>C</kbd>… a partir de C4, e <kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> <kbd>3</kbd> <kbd>E</kbd>… a partir de C5.",
+    "p2": "<kbd>Espaço</kbd> SEQ PLAY, <kbd>Esc</kbd> PATCH (segure para os atalhos), <kbd>Enter</kbd> SCALE.",
+    "p3": "<kbd>↑</kbd> <kbd>↓</kbd> giram K4, <kbd>←</kbd> <kbd>→</kbd> giram K3.",
+    "midih": "Teclado MIDI",
+    "d1": "Um teclado MIDI ligado ao PC toca as 37 teclas (C3 a C6), com velocity, pitch bend e modulação.",
+    "d2": "Funciona no Chrome e no Edge. O navegador pede permissão para MIDI.",
+    "nomidi": "MIDI: este navegador não tem Web MIDI.",
+    "midinone": "MIDI: nenhum teclado encontrado.",
+    "midideny": "MIDI: sem permissão."
+  },
+  "en": {
+    "langname": "Português",
+    "h1": "Polly on the SMK-37 Pro",
+    "sub": "The firmware's own code, running in the browser. The screen shows what the keyboard will show.",
+    "panel": "SMK-37 Pro panel",
+    "screen": "Screen",
+    "go": "Switch on",
+    "going": "Switching on...",
+    "off": "Off. The sound starts when you switch on.",
+    "on": "On.",
+    "fail": "Didn't start: ",
+    "reset": "Factory reset",
+    "resetsure": "Click again to erase everything",
+    "mouse": "Mouse",
+    "m1": "Buttons, pads and keys: click. Lower on a key = harder (velocity).",
+    "m2": "To <b>hold</b> a button (for example PATCH + a key): <kbd>Shift</kbd>+click or right-click. Click again to let go.",
+    "m3": "Knobs: drag up or down, or use the mouse wheel.",
+    "m4": "Faders and MOD: drag. PITCH springs back to the centre when you let go.",
+    "pc": "Computer keyboard",
+    "p1": "Keys: <kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> <kbd>D</kbd> <kbd>C</kbd>… from C4, and <kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> <kbd>3</kbd> <kbd>E</kbd>… from C5.",
+    "p2": "<kbd>Space</kbd> SEQ PLAY, <kbd>Esc</kbd> PATCH (hold it for the shortcuts), <kbd>Enter</kbd> SCALE.",
+    "p3": "<kbd>↑</kbd> <kbd>↓</kbd> turn K4, <kbd>←</kbd> <kbd>→</kbd> turn K3.",
+    "midih": "MIDI keyboard",
+    "d1": "A MIDI keyboard connected to the computer plays the 37 keys (C3 to C6), with velocity, pitch bend and modulation.",
+    "d2": "Works in Chrome and Edge. The browser asks for MIDI permission.",
+    "nomidi": "MIDI: this browser has no Web MIDI.",
+    "midinone": "MIDI: no keyboard found.",
+    "midideny": "MIDI: no permission."
+  }
+};
+const LANG_KEY = "polly-smk37-emu-lang";
+let lang = (() => { try { const l = localStorage.getItem(LANG_KEY); if (l === "pt" || l === "en") return l; } catch {}
+                    return /^pt/i.test(navigator.language || "") ? "pt" : "en"; })();
+const t = (k) => TEXT[lang][k];
+let statusKey = "off", statusArg = "", midiKey = null, midiArg = "";
+function applyLang() {
+  document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+  document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t(e.dataset.t); });
+  document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = t(e.dataset.h); });
+  document.querySelectorAll("[data-a]").forEach((e) => e.setAttribute("aria-label", t(e.dataset.a)));
+  document.getElementById("lang").textContent = t("langname");
+  const go = document.getElementById("go"); if (go.disabled) go.textContent = t("going");
+  const rs = document.getElementById("reset"); if (rs.dataset.armed) rs.textContent = t("resetsure");
+  document.getElementById("status").textContent = t(statusKey) + statusArg;
+  if (midiKey) document.getElementById("midi").textContent = t(midiKey) + midiArg;
+}
+const setStatus = (k, arg = "") => { statusKey = k; statusArg = arg; document.getElementById("status").textContent = t(k) + arg; };
+const setMidi = (k, arg = "") => { midiKey = k; midiArg = arg; document.getElementById("midi").textContent = k ? t(k) + arg : arg; };
+document.getElementById("lang").addEventListener("click", () => {
+  lang = lang === "pt" ? "en" : "pt"; try { localStorage.setItem(LANG_KEY, lang); } catch {} applyLang();
+});
+applyLang();
+
 const NS = "http://www.w3.org/2000/svg", W = 1700, H = 780;
 // FM-1 button bits (plat.h B_*) for the SMK-37's printed buttons (panel.c PANEL_DEFAULT)
 const BTN = { FX: 0, SCALE: 1, CHORD: 2, "NOTE REPEAT": 3, PARA: 4, GLOBE: 5, PATCH: 6, BT: 7, ARP: 8, SEQ: 9,
@@ -372,8 +458,7 @@ addEventListener("blur", () => {
 
 // a MIDI keyboard: notes C3..C6 as the keybed, pitch bend and the mod wheel
 async function midiOn() {
-  const say = document.getElementById("midi");
-  if (!navigator.requestMIDIAccess) { say.textContent = "MIDI: este navegador não tem Web MIDI."; return; }
+  if (!navigator.requestMIDIAccess) { setMidi("nomidi"); return; }
   try {
     const acc = await navigator.requestMIDIAccess();
     const hook = () => {
@@ -385,10 +470,10 @@ async function midiOn() {
         else if (t === 0xE0) { wheels.PITCH.v = Math.round((((b << 7) | a) - 8192) / 8192 * 127); drawWheel(wheels.PITCH); sendWheels(); }
         else if (t === 0xB0 && a === 1) { wheels.MOD.v = b; drawWheel(wheels.MOD); sendWheels(); }
       });
-      say.textContent = ins.length ? `MIDI: ${ins.map((i) => i.name).join(", ")}` : "MIDI: nenhum teclado encontrado.";
+      if (ins.length) setMidi(null, `MIDI: ${ins.map((i) => i.name).join(", ")}`); else setMidi("midinone");
     };
     hook(); acc.onstatechange = hook;
-  } catch { say.textContent = "MIDI: sem permissão."; }
+  } catch { setMidi("midideny"); }
 }
 
 // ---------------------------------------------------------------- screen, lights, pads
@@ -425,14 +510,14 @@ function saveStore(store) {
     const raw = {};
     for (const [o, u8] of Object.entries(store)) { let s = ""; for (const c of u8) s += String.fromCharCode(c); raw[o] = btoa(s); }
     localStorage.setItem(STORE_KEY, JSON.stringify(raw));
-  } catch { /* sem armazenamento: só esta sessão */ }
+  } catch { /* no storage: this session only */ }
 }
 
 // ---------------------------------------------------------------- switching on
 const status = document.getElementById("status"), cpu = document.getElementById("cpu");
 async function switchOn() {
   const go = document.getElementById("go");
-  go.disabled = true; go.textContent = "Ligando...";
+  go.disabled = true; go.textContent = t("going");
   try {
     const ac = new AudioContext({ sampleRate: 44100, latencyHint: "interactive" });
     const [wasm] = await Promise.all([fetch("polly.wasm").then((r) => { if (!r.ok) throw new Error(`polly.wasm: ${r.status}`); return r.arrayBuffer(); }),
@@ -456,20 +541,20 @@ async function switchOn() {
     await ready;
     await ac.resume();
     document.getElementById("start").hidden = true;
-    status.textContent = "Ligado.";
+    setStatus("on");
     mFm = mSb = -1; syncButtons();
     faders.forEach((f) => send({ type: "fader", i: f.i, v: f.v }));
     midiOn();
   } catch (err) {
-    go.disabled = false; go.textContent = "Ligar";
-    status.textContent = "Não ligou: " + (err && err.message || err);
+    go.disabled = false; go.textContent = t("go");
+    setStatus("fail", String(err && err.message || err));
   }
 }
 document.getElementById("go").addEventListener("click", switchOn);
 document.getElementById("reset").addEventListener("click", (e) => {
   const b = e.currentTarget;
   if (b.dataset.armed) { try { localStorage.removeItem(STORE_KEY); } catch {} location.reload(); }
-  else { b.dataset.armed = "1"; b.textContent = "Clique de novo para apagar tudo"; }
+  else { b.dataset.armed = "1"; b.textContent = t("resetsure"); }
 });
 </script>
 </body>
