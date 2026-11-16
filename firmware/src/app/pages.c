@@ -4658,7 +4658,7 @@ static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; 
     {B_OCTUP, PG_ANY, "Octave", "The keys an octave up.", "Hold both for 5 seconds for update mode."},
 #if BOARD_SMK37
     {NB + SB_KNOB_BANK, PG_ANY, "Pad map", "Top: Intro, grooves, Fill, Ending, FOLLOW. Bottom: progressions.",
-     "Top pad 8 swaps the bottom: P1-P8 (blue), P9-P16 (yellow). Press again to hide."},
+     "Top pad 8: P1-P8 or P9-P16. Press again to hide."},
     {NB + SB_FADER_BANK, PG_ANY, "Faders", "F1-F4 set volumes. Press for the next bank.",
      "A: D1-BA. B: C1-C4. C: M1, M2, reverb, chorus."},
     {NB + SB_LEFT, PG_ANY, "Back", "One step back: the page, a list's row, a note.", 0},
