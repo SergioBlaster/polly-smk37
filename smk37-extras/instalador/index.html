@@ -3,11 +3,11 @@
      Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments
      Polly: Felucca's installer page (web/index_pkg.html, by way of X0X), branded for Polly, English first.
      tools/make_pages.py inlines fm1pkg.js and fm1ota.js and the package's metadata. -->
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Instalador Polly SMK-37</title>
+<title>Polly SMK-37</title>
 <style>
   :root { --bg: #faf4e8; --fg: #48392f; --dim: #8a7764; --accent: #e0683a; }
   @media (prefers-color-scheme: dark) {
@@ -33,8 +33,8 @@
 </head>
 <body>
 <main>
-  <button class="lang" id="lang" hidden></button>
-  <h1>Instalar o Polly no SMK-37 Pro</h1>
+  <button class="lang" id="lang"></button>
+  <h1 data-t="title"></h1>
   <p data-t="intro"></p>
   <p data-t="warn"></p>
   <p class="small" data-t="direct"></p>
@@ -500,95 +500,89 @@ class Updater {
 
 const $ = (id) => document.getElementById(id);
 const TEXT = {
-  ja: {
-    intro: "FM-1 を USB で接続してください。（Chrome か Edge で使えます）",
-    warn: "始める前に FM-1 を充電してください。書き込みが終わるまで、パソコンをスリープさせず、USB ケーブルを抜かないでください。",
-    install: "インストール", other: "English",
-    manual: "Polly のページへ",
-    direct: "USB ケーブルはパソコンに直接つないでください。Probe や Transporter などの機材は不要です。",
-    brick: "万一 FM-1 が起動しなくなった場合は、Mac から標準ファームウェアに戻せます:",
-    bricklink: "起動しない FM-1 の復旧（英語）",
-    beta: "このカスタムファームウェアを使ったことで FM-1 が壊れたり不具合が起きたりしても、作者は一切の責任を負いません。自己責任でお使いください。",
-    back: "公式ファームウェアに戻すには、このページ下の「純正ファームウェアに戻す」か、M-VAVE 公式のアップデーター M-UPGRADE（Downloads → PC Software → M-UPGRADE）を使います。",
-    stockh: "純正ファームウェアに戻す",
-    stockwhy: "M-VAVE の FM-1 V15 を、Polly（またはそのセーフモード）から同じ USB ケーブルで書き込みます。Polly のソングは消えることがあるため、先にバックアップしてください。",
-    stock1: "M-VAVE の FM-1 V15 をダウンロード:",
-    stock2: "ダウンロードしたファイルを選ぶ:",
-    stock3: "FM-1 を USB で接続し、下のボタンを押す。",
-    stockinstall: "純正ファームウェアを書き込む",
-    stockok: "M-VAVE の FM-1 V15 です。ボタンを押してください。",
-    stockbad: "これは M-VAVE の FM-1 V15 のファイルではありません。上のリンクのファイルを選んでください。",
-    stockdone: "完了。FM-1 は純正ファームウェアで起動しました。",
-    nomidi: "このブラウザでは使えません。Chrome か Edge で開いてください。", loadfail: "読み込めませんでした: ",
-    start: "開始します", verify: "確認中", loader: "書き込みモードに切り替え中", write: "書き込み中",
-    reboot: "再起動中", done: "完了しました", stopped: "途中で止まりました。USB を挿し直してもう一度押してください。",
-    error: "エラー: ",
-    denied: "MIDI（SysEx）の使用が許可されませんでした。アドレスバーのサイト設定で MIDI を許可して、もう一度押してください。",
-    notfound: "FM-1 が見つかりません。USB ケーブル（データ通信用か）を確かめ、MIDI を使う他のアプリを閉じてから、もう一度押してください。",
-    other: "このキーボードは ChanceTheMaker の SMK ファームウェア（Felucca SMK、Sloop SMK、Melodee SMK、Doom）のどれかで動いています。それらは専用のアップデーターを持ち、自分のパッケージしか受け付けないため、ここからは上書きインストールできません。何も書き込んでいません。",
-    foreign: "キーボードは別のファームウェアのアップデートモードです。何も書き込んでいません。そのファームウェアのアップデーターで完了させてください: ",
-    model: "接続されている機器は FM-1 ではありません。",
-    lost: "USB の接続が切れました。挿し直してもう一度押してください。",
-    noloader: "書き込みモードの FM-1 が見つかりません。USB を挿し直してもう一度押してください。",
-    noreturn: "FM-1 が戻ってきません。電源を入れ直してください。",
-    mismatch: "書き込みは終わりましたが、FM-1 が別のバージョンを報告しています: ",
-    badpkg: "インストールするファイルが壊れています。ページを再読み込みしてください。",
-    leave: "書き込み中です。ページを閉じないでください。",
-    license: "GPL-3.0、無保証。ソース:",
+  "pt": {
+    "title": "Instalar o Polly no SMK-37 Pro",
+    "langname": "English",
+    "intro": "Ligue o SMK-37 Pro a este computador com um cabo USB. Esta página funciona no Chrome ou no Edge.",
+    "warn": "Até terminar, deixe o computador acordado, o cabo USB conectado e esta aba aberta.",
+    "install": "Instalar",
+    "direct": "Ligue o cabo direto no computador (sem hub). Antes, desligue o Bluetooth do PC e feche outros programas que usam MIDI.",
+    "beta": "Firmware não oficial e experimental: use por sua conta e risco.",
+    "back": "Para voltar ao firmware original, use o M-UPGRADE da M-Vave com o arquivo SMK-37 Pro_016.fwsc, ou a seção \"Back to the M-Vave firmware\" do site genkigenki.github.io/smk37.",
+    "ready": "Pronto para gravar: ",
+    "nomidi": "Este navegador não instala firmware. Abra a página no Chrome ou no Edge.",
+    "loadfail": "Não consegui carregar o firmware: ",
+    "start": "Começando",
+    "verify": "Conferindo",
+    "loader": "Entrando no modo de atualização",
+    "write": "Gravando",
+    "reboot": "Reiniciando",
+    "done": "Pronto! O teclado reiniciou com o Polly.",
+    "stopped": "Parou. Tire o cabo USB, ligue de novo e aperte Instalar outra vez.",
+    "error": "Erro: ",
+    "denied": "O navegador não liberou MIDI com SysEx. Libere o MIDI nas configurações do site (ícone ao lado do endereço) e aperte Instalar de novo.",
+    "notfound": "A página não achou o teclado. Confira se o cabo USB é de dados, feche outros programas de MIDI e aperte Instalar de novo.",
+    "other": "Este teclado está com um firmware que tem atualizador próprio (Felucca SMK, Sloop SMK, Melodee SMK, Doom); daqui não dá para gravar por cima. Nada foi gravado.",
+    "foreign": "O teclado está no modo de atualização de outro firmware: nada foi gravado. Termine essa atualização com o atualizador dele: ",
+    "model": "O aparelho conectado não é um SMK-37 (ou modelo irmão).",
+    "lost": "A conexão USB caiu. Ligue o cabo de novo e aperte Instalar outra vez.",
+    "noloader": "A página não achou o teclado no modo de atualização. Tire o cabo USB, ligue de novo e aperte Instalar outra vez.",
+    "noreturn": "O teclado não voltou. Desligue e ligue de novo.",
+    "mismatch": "A gravação terminou, mas o teclado informa outra versão: ",
+    "badpkg": "O arquivo do firmware está com problema. Recarregue a página.",
+    "leave": "Gravando. Não feche a página.",
+    "license": "GPL-3.0, sem garantia. Código:"
   },
-  en: {
-    intro: "Ligue o SMK-37 Pro a este computador com um cabo USB. Esta página funciona no Chrome ou no Edge.",
-    warn: "Até terminar, deixe o computador acordado, o cabo USB conectado e esta aba aberta.",
-    install: "Instalar", other: "Este teclado está com um firmware que tem atualizador próprio (Felucca SMK, Sloop SMK, Melodee SMK, Doom); daqui não dá para gravar por cima. Nada foi gravado.",
-    manual: "Back to Polly",
-    direct: "Ligue o cabo direto no computador (sem hub). Antes, desligue o Bluetooth do PC e feche outros programas que usam MIDI.",
-    brick: "If the FM-1 no longer starts, a Mac can put the stock firmware back. For the steps, see",
-    bricklink: "recovering an FM-1 that won't start",
-    beta: "Firmware não oficial e experimental: use por sua conta e risco. Esta versão ainda não foi testada num SMK-37 de verdade.",
-    back: "Para voltar ao firmware original, use o M-UPGRADE da M-Vave com o arquivo SMK-37 Pro_016.fwsc, ou a seção \"Back to the M-Vave firmware\" do site genkigenki.github.io/smk37.",
-    stockh: "Back to the stock firmware",
-    stockwhy: "This puts M-VAVE's FM-1 V15 firmware back over the same USB cable. It works from Polly, Polly's safe mode, X0X or Felucca. Your Polly songs may be lost, so back them up first.",
-    stock1: "Download M-VAVE's FM-1 V15:",
-    stock2: "Choose the file you downloaded:",
-    stock3: "Connect the FM-1 with a USB cable and press the button below.",
-    stockinstall: "Install the stock firmware",
-    stockok: "That is M-VAVE's FM-1 V15. Press the button to install it.",
-    stockbad: "That is not M-VAVE's FM-1 V15 file. Choose the file from the link above.",
-    stockdone: "Done. The FM-1 has restarted with its original firmware.",
-    nomidi: "Este navegador não instala firmware. Abra a página no Chrome ou no Edge.", loadfail: "Não consegui carregar o firmware: ",
-    start: "Começando", verify: "Conferindo", loader: "Entrando no modo de atualização", write: "Gravando",
-    reboot: "Reiniciando", done: "Pronto! O teclado reiniciou com o Polly.", stopped: "Parou. Tire o cabo USB, ligue de novo e aperte Instalar outra vez.",
-    error: "Erro: ",
-    denied: "O navegador não liberou MIDI com SysEx. Libere o MIDI nas configurações do site (ícone ao lado do endereço) e aperte Instalar de novo.",
-    notfound: "A página não achou o teclado. Confira se o cabo USB é de dados, feche outros programas de MIDI e aperte Instalar de novo.",
-    other: "This keyboard runs one of ChanceTheMaker's SMK firmwares (Felucca SMK, Sloop SMK, Melodee SMK, Doom). They have their own updater, which takes only their packages, so these firmwares cannot be installed over them from here. Nothing was written.",
-    foreign: "O teclado está no modo de atualização de outro firmware: nada foi gravado. Termine essa atualização com o atualizador dele: ",
-    model: "O aparelho conectado não é um SMK-37 (ou modelo irmão).",
-    lost: "A conexão USB caiu. Ligue o cabo de novo e aperte Instalar outra vez.",
-    noloader: "A página não achou o teclado no modo de atualização. Tire o cabo USB, ligue de novo e aperte Instalar outra vez.",
-    noreturn: "O teclado não voltou. Desligue e ligue de novo.",
-    mismatch: "A gravação terminou, mas o teclado informa outra versão: ",
-    badpkg: "O arquivo do firmware está com problema. Recarregue a página.",
-    leave: "Gravando. Não feche a página.",
-    license: "GPL-3.0, sem garantia. Código:",
-  },
+  "en": {
+    "title": "Install Polly on the SMK-37 Pro",
+    "langname": "Português",
+    "intro": "Connect the SMK-37 Pro to this computer with a USB cable. This page works in Chrome or Edge.",
+    "warn": "Until it's done, keep the computer awake, the USB cable in and this tab open.",
+    "install": "Install",
+    "direct": "Connect the cable straight to the computer (no hub). First, turn off the computer's Bluetooth and close other apps that use MIDI.",
+    "beta": "Unofficial, experimental firmware: use it at your own risk.",
+    "back": "To go back to the stock firmware, use M-Vave's M-UPGRADE with the file SMK-37 Pro_016.fwsc, or the \"Back to the M-Vave firmware\" section of genkigenki.github.io/smk37.",
+    "ready": "Ready to write: ",
+    "nomidi": "This browser can't install firmware. Open the page in Chrome or Edge.",
+    "loadfail": "Could not load the firmware: ",
+    "start": "Starting",
+    "verify": "Checking",
+    "loader": "Switching to update mode",
+    "write": "Writing",
+    "reboot": "Restarting",
+    "done": "Done! The keyboard has restarted with Polly.",
+    "stopped": "Stopped. Unplug the USB cable, plug it back in and press Install again.",
+    "error": "Error: ",
+    "denied": "The browser didn't allow MIDI with SysEx. Allow MIDI in the site settings (the icon by the address) and press Install again.",
+    "notfound": "The page can't find the keyboard. Make sure the USB cable is a data cable, close other MIDI apps and press Install again.",
+    "other": "This keyboard runs a firmware with its own updater (Felucca SMK, Sloop SMK, Melodee SMK, Doom); it can't be written over from here. Nothing was written.",
+    "foreign": "The keyboard is in the update mode of another firmware: nothing was written. Finish that update with its own updater: ",
+    "model": "The connected device is not an SMK-37 (or a sister model).",
+    "lost": "The USB connection was lost. Plug the cable back in and press Install again.",
+    "noloader": "The page can't find the keyboard in update mode. Unplug the USB cable, plug it back in and press Install again.",
+    "noreturn": "The keyboard didn't come back. Switch it off and on again.",
+    "mismatch": "The install finished, but the keyboard reports another version: ",
+    "badpkg": "The firmware file is damaged. Reload the page.",
+    "leave": "Writing. Don't close the page.",
+    "license": "GPL-3.0, no warranty. Source:"
+  }
 };
-let lang = "en";                                 /* English first; 日本語 is a click away */
+let lang = /^pt/i.test(navigator.language || "") ? "pt" : "en";   /* the browser's language; a click switches */
 const t = (k) => TEXT[lang][k];
 let lastKey = null, lastArg = "";
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t(e.dataset.t); });
-  $("lang").textContent = t("other");
+  $("lang").textContent = t("langname"); document.title = t("title");
   if (lastKey) $("status").textContent = t(lastKey) + lastArg;
 }
-$("lang").addEventListener("click", () => { lang = lang === "ja" ? "en" : "ja"; applyLang(); });
+$("lang").addEventListener("click", () => { lang = lang === "pt" ? "en" : "pt"; applyLang(); });
 applyLang();
 const sayK = (k, arg = "") => { lastKey = k; lastArg = arg; $("status").textContent = t(k) + arg; };
 const say = (txt) => { lastKey = null; $("status").textContent = txt; };
 const log = (t) => { $("log").textContent += t + "\n"; };
 let image = null;
-const meta = {"version": "SMK-37 (nomes do SMK, temas)", "product": "SMK-37 Pro_300", "pkg": "polly-smk37.fwsc"};
+const meta = {"version": "SMK-37", "product": "SMK-37 Pro_300", "pkg": "polly-smk37.fwsc"};
 
 let writing = false;
 window.addEventListener("beforeunload", (e) => { if (writing) { e.preventDefault(); e.returnValue = t("leave"); } });
@@ -601,7 +595,7 @@ window.addEventListener("beforeunload", (e) => { if (writing) { e.preventDefault
     const pkg = new Uint8Array(await r.arrayBuffer());
     if (productOf(pkg) !== meta.product) { sayK("badpkg"); return; }
     image = logicalImage(pkg);
-    say(`Pronto para gravar: Polly ${meta.version} (${meta.product}).`);
+    sayK("ready", `Polly ${meta.version} (${meta.product})`);
     $("go").disabled = false;
   } catch (e) { sayK("loadfail", e.message); }
 })();

@@ -1,7 +1,11 @@
 # Gera o instalador web local do Polly SMK-37 (pasta "instalador"), a partir do instalador do próprio projeto
-# (genki-port/web/polly_installer.html + fm1pkg.js + fm1ota.js) e do firmware em firmware/polly-smk37.fwsc.
-# A página grava pelo USB-MIDI do Chrome/Edge, como o instalador do genkigenki. Textos em português, sem a parte
-# de "voltar ao firmware do FM-1" (para o SMK-37 a volta é pelo M-UPGRADE ou pelo site do genkigenki).
+# (web/polly_installer.html + fm1pkg.js + fm1ota.js) e do firmware em firmware/polly-smk37.fwsc.
+# A página grava pelo USB-MIDI do Chrome/Edge, como o instalador do genkigenki. Em português e em inglês (um botão
+# troca; abre no idioma do navegador), sem a parte de "voltar ao firmware do FM-1" (para o SMK-37 a volta é pelo
+# M-UPGRADE ou pelo site do genkigenki).
+#
+# Builds the local Polly SMK-37 web installer (folder "instalador") from the project's own installer and the
+# firmware, in Portuguese and English (a button switches; it opens in the browser's language).
 import json
 import re
 import shutil
@@ -29,7 +33,7 @@ shutil.copy(pkg, saida / "polly-smk37.fwsc")
 html = (WEB / "polly_installer.html").read_text(encoding="utf-8")
 lib = strip_module((WEB / "fm1pkg.js").read_text(encoding="utf-8")) + "\n" + \
     strip_module((WEB / "fm1ota.js").read_text(encoding="utf-8"))
-meta = json.dumps({"version": "SMK-37 (nomes do SMK, temas)", "product": produto, "pkg": "polly-smk37.fwsc"})
+meta = json.dumps({"version": "SMK-37", "product": produto, "pkg": "polly-smk37.fwsc"})
 html = html.replace("/*LIB*/", lib).replace("/*META*/", meta)
 
 
@@ -44,10 +48,8 @@ def troca(antigo, novo, n=1):
 troca(html[html.index('  <p class="small"><span data-t="brick">'):html.index('  <p><button id="go"')], "")
 troca(html[html.index('  <h2 data-t="stockh">'):html.index('  <p><a href="../"')], "")
 troca('  <p><a href="../" style="color:inherit" data-t="manual"></a></p>\n', '  <p class="small" data-t="back"></p>\n')
-troca('<button class="lang" id="lang"></button>', '<button class="lang" id="lang" hidden></button>')
-troca("<h1>Install Polly</h1>", "<h1>Instalar o Polly no SMK-37 Pro</h1>")
-troca('<html lang="en">', '<html lang="pt-BR">')
-troca("<title>Polly installer</title>", "<title>Instalador Polly SMK-37</title>")
+troca("<h1>Install Polly</h1>", '<h1 data-t="title"></h1>')
+troca("<title>Polly installer</title>", "<title>Polly SMK-37</title>")
 # o "stockfile" não existe mais na página: o código dele não pode quebrar o resto
 troca('$("stockfile").addEventListener(', '$("stockfile") && $("stockfile").addEventListener(')
 troca('$("stockgo").addEventListener(', '$("stockgo") && $("stockgo").addEventListener(')
@@ -55,12 +57,14 @@ troca('$("go").disabled = $("stockgo").disabled = true;', '$("go").disabled = tr
 troca('  $("stockgo").disabled = !stock;\n', '')
 
 PT = {
+    "title": "Instalar o Polly no SMK-37 Pro", "langname": "English",
     "intro": "Ligue o SMK-37 Pro a este computador com um cabo USB. Esta página funciona no Chrome ou no Edge.",
     "warn": "Até terminar, deixe o computador acordado, o cabo USB conectado e esta aba aberta.",
     "install": "Instalar",
     "direct": "Ligue o cabo direto no computador (sem hub). Antes, desligue o Bluetooth do PC e feche outros programas que usam MIDI.",
-    "beta": "Firmware não oficial e experimental: use por sua conta e risco. Esta versão ainda não foi testada num SMK-37 de verdade.",
+    "beta": "Firmware não oficial e experimental: use por sua conta e risco.",
     "back": "Para voltar ao firmware original, use o M-UPGRADE da M-Vave com o arquivo SMK-37 Pro_016.fwsc, ou a seção \"Back to the M-Vave firmware\" do site genkigenki.github.io/smk37.",
+    "ready": "Pronto para gravar: ",
     "nomidi": "Este navegador não instala firmware. Abra a página no Chrome ou no Edge.",
     "loadfail": "Não consegui carregar o firmware: ",
     "start": "Começando", "verify": "Conferindo", "loader": "Entrando no modo de atualização", "write": "Gravando",
@@ -80,16 +84,44 @@ PT = {
     "leave": "Gravando. Não feche a página.",
     "license": "GPL-3.0, sem garantia. Código:",
 }
-ini = html.index("  en: {")
-fim = html.index("\n  },", ini)
-bloco = html[ini:fim]
-for k, v in PT.items():
-    novo, n = re.subn(r'(\b%s: )"(?:[^"\\]|\\.)*"' % re.escape(k), lambda m: m.group(1) + json.dumps(v, ensure_ascii=False), bloco, count=1)
-    if n != 1:
-        sys.exit(f"texto {k} não encontrado")
-    bloco = novo
-html = html[:ini] + bloco + html[fim:]
-troca("say(`Polly ${meta.version}`);", "say(`Pronto para gravar: Polly ${meta.version} (${meta.product}).`);")
+EN = {
+    "title": "Install Polly on the SMK-37 Pro", "langname": "Português",
+    "intro": "Connect the SMK-37 Pro to this computer with a USB cable. This page works in Chrome or Edge.",
+    "warn": "Until it's done, keep the computer awake, the USB cable in and this tab open.",
+    "install": "Install",
+    "direct": "Connect the cable straight to the computer (no hub). First, turn off the computer's Bluetooth and close other apps that use MIDI.",
+    "beta": "Unofficial, experimental firmware: use it at your own risk.",
+    "back": "To go back to the stock firmware, use M-Vave's M-UPGRADE with the file SMK-37 Pro_016.fwsc, or the \"Back to the M-Vave firmware\" section of genkigenki.github.io/smk37.",
+    "ready": "Ready to write: ",
+    "nomidi": "This browser can't install firmware. Open the page in Chrome or Edge.",
+    "loadfail": "Could not load the firmware: ",
+    "start": "Starting", "verify": "Checking", "loader": "Switching to update mode", "write": "Writing",
+    "reboot": "Restarting", "done": "Done! The keyboard has restarted with Polly.",
+    "stopped": "Stopped. Unplug the USB cable, plug it back in and press Install again.",
+    "error": "Error: ",
+    "denied": "The browser didn't allow MIDI with SysEx. Allow MIDI in the site settings (the icon by the address) and press Install again.",
+    "notfound": "The page can't find the keyboard. Make sure the USB cable is a data cable, close other MIDI apps and press Install again.",
+    "other": "This keyboard runs a firmware with its own updater (Felucca SMK, Sloop SMK, Melodee SMK, Doom); it can't be written over from here. Nothing was written.",
+    "foreign": "The keyboard is in the update mode of another firmware: nothing was written. Finish that update with its own updater: ",
+    "model": "The connected device is not an SMK-37 (or a sister model).",
+    "lost": "The USB connection was lost. Plug the cable back in and press Install again.",
+    "noloader": "The page can't find the keyboard in update mode. Unplug the USB cable, plug it back in and press Install again.",
+    "noreturn": "The keyboard didn't come back. Switch it off and on again.",
+    "mismatch": "The install finished, but the keyboard reports another version: ",
+    "badpkg": "The firmware file is damaged. Reload the page.",
+    "leave": "Writing. Don't close the page.",
+    "license": "GPL-3.0, no warranty. Source:",
+}
+assert PT.keys() == EN.keys()
+texto = "const TEXT = " + json.dumps({"pt": PT, "en": EN}, ensure_ascii=False, indent=2) + ";\n"
+ini = html.index("const TEXT = {")
+fim = html.index('let lang = "en";')
+troca(html[ini:fim], texto)
+troca(html[html.index('let lang = "en";'):html.index("\n", html.index('let lang = "en";'))],
+      'let lang = /^pt/i.test(navigator.language || "") ? "pt" : "en";   /* the browser\'s language; a click switches */')
+troca('$("lang").textContent = t("other");', '$("lang").textContent = t("langname"); document.title = t("title");')
+troca('lang = lang === "ja" ? "en" : "ja";', 'lang = lang === "pt" ? "en" : "pt";')
+troca("say(`Polly ${meta.version}`);", 'sayK("ready", `Polly ${meta.version} (${meta.product})`);')
 
 (saida / "index.html").write_text(html, encoding="utf-8")
 print(f"instalador: {saida / 'index.html'} ({len(html)} B), firmware {produto}, {len(raw)} B")

@@ -38,7 +38,8 @@ os firmwares do catálogo dele; este build se instala pelo `Abrir instalador.bat
 
 1. Desligue o Bluetooth do PC e remova o pareamento do SMK-37.
 2. Ligue o teclado direto no PC com um cabo USB de dados.
-3. Abra `Abrir instalador.bat`, confira se a página diz "Pronto para gravar", clique em **Instalar** e permita o
+3. Abra `Abrir instalador.bat` (a página abre no idioma do navegador; o botão no canto troca entre português e
+   inglês), confira se ela diz "Pronto para gravar", clique em **Instalar** e permita o
    MIDI.
 4. Espere a mensagem "Pronto!" e só então feche a aba e a janela preta.
 
@@ -87,13 +88,13 @@ firmwares in its own catalogue, so this build is installed with `Abrir instalado
 
 ## Install
 
-The installer page is in Portuguese. "Instalar" means Install, and "Pronto" means Ready or Done.
+The installer page opens in the browser's language (English or Portuguese); the button at the top right switches.
 
 1. Turn off the computer's Bluetooth and remove the SMK-37's pairing.
 2. Connect the keyboard straight to the computer with a USB data cable.
-3. Open `Abrir instalador.bat`. Check that the page says "Pronto para gravar" (ready to write), click
-   **Instalar** and allow MIDI.
-4. Wait for "Pronto!", then close the tab and the black window.
+3. Open `Abrir instalador.bat`. Check that the page says "Ready to write", click **Install** and allow
+   MIDI.
+4. Wait for "Done!", then close the tab and the black window.
 
 On another system, `python3 tools/fm1_install.py smk37-extras/firmware/polly-smk37.fwsc` does the same. It needs
 `pip install mido python-rtmidi`.
