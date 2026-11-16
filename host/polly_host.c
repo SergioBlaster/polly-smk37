@@ -662,6 +662,10 @@ static int expect(const char *what, const char *val)
         got = free_chord(&c) ? c.root * 100 + c.type : -1;
     } else if (!strcmp(what, "free_vol"))
         got = fp.vol;
+    else if (!strcmp(what, "free_flats"))         /* Free play: the black keys as 1 flats, 0 sharps, -1 KEY_NAME's */
+        got = free_flats();
+    else if (!strcmp(what, "free_staff"))
+        got = fp.staff;
     else if (!strcmp(what, "unchanged"))          /* 1: as at "snap" (but Free play's sound) */
         got = state_hash() == snap_h;
     else if (!strcmp(what, "fbank"))              /* the fader bank, 0 A .. 2 C */

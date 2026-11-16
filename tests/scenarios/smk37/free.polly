@@ -64,6 +64,61 @@ kbkey 12 down 100
 expect free_low 72
 kbkey 12 up
 tap OCT-
+# ---- the staff: the black keys by the chord's key (Eb major: flats; D major: sharps)
+kbkey 15 down 100
+kbkey 19 down 100
+kbkey 22 down 100
+expect free_chord 300
+expect free_flats 1
+wait 80
+shot free_staff_eb.png
+kbkey 15 up
+kbkey 19 up
+kbkey 22 up
+kbkey 14 down 100
+kbkey 18 down 100
+kbkey 21 down 100
+expect free_chord 200
+expect free_flats 0
+wait 80
+shot free_staff_d.png
+kbkey 14 up
+kbkey 18 up
+kbkey 21 up
+# a 2nd and ledger lines: C3 D3 (low) and C6 (high), the notes beside each other
+kbkey 0 down 100
+kbkey 2 down 100
+kbkey 36 down 100
+wait 80
+shot free_staff_ledger.png
+kbkey 0 up
+kbkey 2 up
+kbkey 36 up
+# past the ledger lines: three octaves up, C9: an octave in, 8va
+tap OCT+
+tap OCT+
+tap OCT+
+kbkey 36 down 100
+expect free_low 120
+wait 80
+shot free_staff_8va.png
+kbkey 36 up
+tap OCT-
+tap OCT-
+tap OCT-
+# KNOB 4 (the simulator's K4): flats; KNOB 3: the staff off (the names alone, large)
+spin K4 2
+expect free_flats 1
+kbkey 13 down 100
+wait 80
+shot free_staff_flat.png
+kbkey 13 up
+spin K3 -1
+expect free_staff 0
+wait 80
+shot free_nostaff.png
+spin K3 1
+spin K4 -2
 # ---- the band's controls do nothing here
 pad 0
 pad 8
