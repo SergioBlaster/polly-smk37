@@ -1,28 +1,32 @@
 # Free play, the SMK-37's top pad 7 (index 6): the keys play one GM sound with the band stopped, the screen names the
 # note, the interval or the chord. Only the sound is kept: the songs, the band and every other setting are as before.
-# (page 18: P_FREE; free_chord: root*100 + CH_* type, C major 0, Am7 918)
+# (a shot waits for the screen's next frames; page 18: P_FREE; free_chord: root*100 + CH_* type, C major 0, Am7 918)
 wait 300
 snap
 expect page 0
 pad 6
 expect page 18
+wait 80
 shot free_empty.png
 # ---- a note: C4 (keybed key 12)
 kbkey 12 down 100
 expect free_n 1
 expect free_low 60
+wait 80
 shot free_note.png
 # ---- a chord: C E G, then let go (the last stays, dim)
 kbkey 16 down 100
 kbkey 19 down 100
 expect free_n 3
 expect free_chord 0
+wait 80
 shot free_chord.png
 kbkey 12 up
 kbkey 16 up
 kbkey 19 up
 expect free_n 0
 expect free_chord 0
+wait 80
 shot free_last.png
 # ---- Am7: A3 C4 E4 G4
 kbkey 9 down 90
@@ -31,6 +35,7 @@ kbkey 16 down 90
 kbkey 19 down 90
 expect free_chord 918
 expect free_low 57
+wait 80
 shot free_am7.png
 kbkey 9 up
 kbkey 12 up
@@ -40,6 +45,7 @@ kbkey 19 up
 kbkey 12 down 100
 kbkey 19 down 100
 expect free_n 2
+wait 80
 shot free_interval.png
 kbkey 12 up
 kbkey 19 up
@@ -48,6 +54,7 @@ spin K1 5
 expect free_prog 5
 spin K2 -20
 expect free_vol 80
+wait 80
 shot free_sound.png
 spin PRESET 1
 expect free_prog 8
