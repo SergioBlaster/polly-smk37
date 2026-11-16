@@ -1,10 +1,32 @@
 # Polly for the M-VAVE FM-1
 
+> **This is a version of Polly for the M-Vave SMK-37 Pro.** It builds on
+> [genkigenki/fm1-polly](https://github.com/genkigenki/fm1-polly) (branch `smk37`, Polly 0.4.1) and adds the changes
+> listed in [What this version changes](#what-this-version-changes). To install it, try the emulator or read the
+> guide, see [smk37-extras/](smk37-extras/README.md). The original Polly README follows further down.
+>
 > **Esta é uma versão do Polly para o M-Vave SMK-37 Pro.** Ela parte do port de
 > [genkigenki/fm1-polly](https://github.com/genkigenki/fm1-polly) (branch `smk37`, Polly 0.4.1) e acrescenta as
 > mudanças listadas em [O que muda nesta versão](#o-que-muda-nesta-versão). Para instalar, usar o emulador ou ler o
 > guia em português, veja [smk37-extras/](smk37-extras/README.md). O texto em inglês mais abaixo é o README
 > original do Polly.
+
+## What this version changes
+
+Every change applies only to the SMK-37 build (`BOARD_SMK37`). The FM-1 build keeps its own names.
+
+| Change | Details |
+| --- | --- |
+| **The SMK-37's names on screen** | The screen uses the names printed on the SMK-37: PATCH, SCALE, PARA, NOTE REPEAT, CHORD, GLOBE, BT, SEQ PLAY, SEQ REC and K2–K8. Before, it showed the FM-1's (HOME, SEL, EDIT, LFO, ENV, GLO, SAVE, PLAY, REC, SELECT, KNOB 1–4). This covers the footers, the help cards and the messages. The table is in `firmware/src/app/btn_names.h`. |
+| **A screen that needs no manual** | On every page, each column of the knob strip shows the knob that sets it (K5–K8). KNOB BANK, FADER BANK, `<` and `>` show a help card when held for a second, like the other buttons, and act on release. The KNOB BANK card explains the pad map, including pad 8 (P1–P8 / P9–P16). K1 shows "VOLUME nn%". |
+| **Three screen themes** | Light (the original), dark and **neon** (near black with cyan, magenta and amber, after genkigenki.github.io/smk37). To switch: GLOBE, `>`, K5. The choice is saved with the project. |
+| **SMK-37 emulator in the browser** | `web/emu/smk37.html` draws the SMK-37's panel (37 velocity keys, 16 coloured pads, faders, wheels, K1–K8) and runs the same firmware built for WebAssembly. It takes the mouse, the computer keyboard and a MIDI keyboard. Build it with `BOARD=smk37 sh web/emu/build.sh`. |
+| **Local installer** | `smk37-extras/Abrir instalador.bat` writes this build over USB-MIDI from Chrome or Edge. genkigenki's installer only writes the firmwares in its own catalogue. |
+| **CI on GitHub Actions** | `.github/workflows/smk37.yml` builds the FM-1 and SMK-37 images and runs the tests, including `tests/scenarios/smk37/help.polly`. It also takes screenshots of every screen in the three themes and builds the emulator. The ready firmware comes out as an artifact. |
+| **Beginner's guide** | In Portuguese, with a key guide for the SMK-37: `smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`. |
+
+Unofficial, experimental firmware: use it at your own risk. To go back to the stock firmware, use M-Vave's M-UPGRADE
+with `SMK-37 Pro_016.fwsc`.
 
 ## O que muda nesta versão
 
