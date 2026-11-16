@@ -2224,7 +2224,8 @@ static void holds(void)
 {
     uint32_t now = plat_ms();
     for (int b = 0; b < NB; b++)                 /* a button held alone, unused: its card (its release does nothing) */
-        if (ui.btn == 1u << b && !ui.keys && b != B_HOME && !(ui.btn_used >> b & 1u) && now - ui.btn_t[b] >= CARD_MS) {
+        if (ui.btn == 1u << b && !ui.keys && (b != B_HOME || IS_FREE) && !(ui.btn_used >> b & 1u) &&
+            now - ui.btn_t[b] >= CARD_MS) {   /* (HOME: held, the shortcuts; in Free play its card) */
             ui.card = (uint8_t)(b + 1);
             ui.btn_used |= 1u << b;
         }

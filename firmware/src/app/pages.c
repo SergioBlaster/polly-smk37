@@ -4942,6 +4942,23 @@ static void draw_footer(void)
 #define CARD_LISTS_L1 "The page's knobs, then its actions. " N_SEL " runs the one picked."
 #endif
 static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; } CARD[] = {
+#if BOARD_SMK37                                      /* Free play's own (first: they win over the PG_ANY ones) */
+#define FREE_BACK "Top pad 7 leaves it, back where you were."
+#define FREE_LEAVE(b, page) {b, PG(P_FREE), page, "Leaves Free play and opens " page ".", FREE_BACK}
+    {B_HOME, PG(P_FREE), "Home", "Leaves Free play and opens Home.", FREE_BACK},
+    FREE_LEAVE(B_ARP, "Progression"), FREE_LEAVE(B_SEQ, "Band"), FREE_LEAVE(B_EDIT, "Sound"),
+    FREE_LEAVE(B_LFO, "Mixer"), FREE_LEAVE(B_FX, "Effects"), FREE_LEAVE(B_ENV, "Style"), FREE_LEAVE(B_GLO, "Setup"),
+    {B_PLAY, PG(P_FREE), "Play", "Nothing in Free play: the band rests.", FREE_BACK},
+    {B_REC, PG(P_FREE), "Record", "Nothing in Free play: nothing is recorded.", FREE_BACK},
+    {B_SEL, PG(P_FREE), "Lists", "Nothing in Free play. K5 picks the sound.", "K7: the staff. K8: sharps or flats."},
+    {B_SAVE, PG(P_FREE), "Save", "Nothing to save: the sound you pick is kept by itself.", 0},
+    {B_OCTDN, PG(P_FREE), "Octave", "The keys an octave down, here only.", "Not kept: 0 again next time."},
+    {B_OCTUP, PG(P_FREE), "Octave", "The keys an octave up, here only.", "Not kept: 0 again next time."},
+    {NB + SB_KNOB_BANK, PG(P_FREE), "Pad map", "Nothing in Free play: the pads rest.", FREE_BACK},
+    {NB + SB_FADER_BANK, PG(P_FREE), "Faders", "Nothing in Free play: the band's levels stay.", FREE_BACK},
+    {NB + SB_LEFT, PG(P_FREE), "Back", "Nothing in Free play.", FREE_BACK},
+    {NB + SB_RIGHT, PG(P_FREE), "Next", "Nothing in Free play.", FREE_BACK},
+#endif
     {B_ARP, PG_ANY, "Progression", "Your chords, 1 to 16 bars, played in a loop. Play chords on the keys.",
      CARD_ARP_L2},
     {B_SEQ, PG(P_NOTES), "Notes", N_SELECT " picks a note. The knobs set place, pitch, length, velocity.",
@@ -4985,7 +5002,7 @@ static const struct { uint8_t btn; uint32_t pages; const char *title, *l1, *l2; 
     {B_OCTUP, PG_ANY, "Octave", "The keys an octave up.", "Hold both for 5 seconds for update mode."},
 #if BOARD_SMK37
     {NB + SB_KNOB_BANK, PG_ANY, "Pad map", "Top: Intro, grooves, Fill, Ending, FOLLOW. Bottom: progressions.",
-     "Top pad 8: P1-P8 or P9-P16. Press again to hide."},
+     "Pad 7: Free play. Pad 8: P1-P8 / P9-P16. Again: hide."},
     {NB + SB_FADER_BANK, PG_ANY, "Faders", "F1-F4 set volumes. Press for the next bank.",
      "A: D1-BA. B: C1-C4. C: M1, M2, reverb, chorus."},
     {NB + SB_LEFT, PG_ANY, "Back", "One step back: the page, a list's row, a note.", 0},

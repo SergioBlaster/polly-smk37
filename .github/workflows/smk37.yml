@@ -105,6 +105,13 @@ jobs:
               grep FAIL $d/log.txt || true
             done
           done
+          # Free play's screens in the dark and neon themes too (light: the tests' own run, copied below)
+          for theme in dark neon; do
+            d=build/smk-screens/$theme/smk37-free
+            mkdir -p $d
+            ../host_$theme tests/scenarios/smk37/free.polly $d > $d/log.txt 2>&1 \
+              || { echo "::warning::$theme smk37-free: $(grep -m1 FAIL $d/log.txt)"; fail=1; }
+          done
           cp -r build/scenarios/smk37-* build/smk-screens/light/ 2>/dev/null || true
           exit $fail
 

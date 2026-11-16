@@ -140,6 +140,83 @@ pad 6
 expect page 0
 expect unchanged 1
 expect free_prog 8
+# ---- help in Free play: a button held a second, its own card (the release does nothing); every card's words fit
+pad 6
+expect page 18
+press PLAY
+wait 1100
+expect card 11
+wait 80
+shot free_card_play.png
+release PLAY
+expect page 18
+expect playing 0
+press HOME
+wait 1100
+expect card 7
+wait 80
+shot free_card_home.png
+release HOME
+expect page 18
+press ARP
+wait 1100
+expect card 9
+release ARP
+expect page 18
+press REC
+wait 1100
+release REC
+press SEL
+wait 1100
+release SEL
+press SAVE
+wait 1100
+release SAVE
+press OCT+
+wait 1100
+release OCT+
+press OCT-
+wait 1100
+release OCT-
+press SEQ
+wait 1100
+release SEQ
+press EDIT
+wait 1100
+release EDIT
+press LFO
+wait 1100
+release LFO
+press FX
+wait 1100
+release FX
+press ENV
+wait 1100
+release ENV
+press GLO
+wait 1100
+release GLO
+sbtn KNOB_BANK down
+wait 1100
+expect card 15
+wait 80
+shot free_card_knob_bank.png
+sbtn KNOB_BANK up
+sbtn FADER_BANK down
+wait 1100
+sbtn FADER_BANK up
+sbtn LEFT down
+wait 1100
+sbtn LEFT up
+sbtn RIGHT down
+wait 1100
+sbtn RIGHT up
+expect page 18
+expect smkmap 0
+expect fbank 0
+pad 6
+expect page 0
+expect unchanged 1
 # ---- from the Song page, PATCH (HOME) out to Home
 tap HOME
 expect page 1
