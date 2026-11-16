@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polly SMK-37</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root { --ground: #f4efe6; --ink: #2f2925; --muted: #7d7064; --rule: #ddd3c3; --accent: #e0683a; --card: #fffaf1; color-scheme: light; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ground: #1a1714; --ink: #f2e8d8; --muted: #b3a28e; --rule: #3a322a; --accent: #f28a5a; --card: #26201b; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --ground: #1a1714; --ink: #f2e8d8; --muted: #b3a28e; --rule: #3a322a; --accent: #f28a5a; --card: #26201b; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); margin: 0; padding: 20px 16px 48px; font: 400 15px/1.5 system-ui, "Segoe UI", Arial, sans-serif; }
+main { max-width: 1500px; margin: 0 auto; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1rem; margin: 0 0 .8rem; }
+h1 { font-size: 1.6rem; margin: 0; }
+header p { margin: 0; color: var(--muted); }
+.device { position: relative; width: 100%; aspect-ratio: 1700 / 780; user-select: none; -webkit-user-select: none; touch-action: none; }
+.device svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.device canvas { position: absolute; image-rendering: pixelated; background: #000; border-radius: 3px; }
+.ctl { cursor: pointer; }
+.knob, .fader, .wheel { cursor: ns-resize; }
+.face { transition: fill .05s; }
+.held .face { stroke: #f28a5a; stroke-width: 3; }
+.latched .face { stroke: #6fc3ff; stroke-width: 3; }
+.lit .face.btn { fill: #f28a5a; }
+.key.held .face.w { fill: #f6b48e; }
+.key.held .face.b { fill: #e0683a; }
+.start { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10, 11, 13, .5); border-radius: 2.6% / 5.6%; }
+.start[hidden] { display: none; }
+.start button { font: 600 1.2rem system-ui, sans-serif; padding: .7em 1.6em; border-radius: 999px; border: 0; background: #f28a5a; color: #2a140a; cursor: pointer; }
+.start button:disabled { opacity: .6; cursor: progress; }
+.bar { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; align-items: center; margin: .8rem 0 0; color: var(--muted); font-size: .92rem; }
+.bar button { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: .3em .8em; cursor: pointer; }
+.help { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem 2rem; margin: 1.4rem 0 0; }
+.help h2 { font-size: 1.05rem; margin: 0 0 .3rem; }
+.help ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+.help li { margin: 0 0 .2rem; }
+kbd { font: 600 .85em ui-monospace, Consolas, monospace; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 0 .3em; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Polly no SMK-37 Pro</h1>
+  <p>O mesmo código do firmware, rodando no navegador. A tela mostra o que o teclado vai mostrar.</p>
+</header>
+
+<div class="device" id="device">
+  <svg id="panel" viewBox="0 0 1700 780" role="application" aria-label="Painel do SMK-37 Pro"></svg>
+  <canvas id="screen" width="240" height="240" aria-label="Tela"></canvas>
+  <div class="start" id="start"><button id="go">Ligar</button></div>
+</div>
+
+<div class="bar">
+  <span id="status">Desligado. O som começa quando você liga.</span>
+  <span id="midi"></span>
+  <span id="cpu"></span>
+  <button id="reset" type="button">Restaurar fábrica</button>
+</div>
+
+<section class="help">
+  <div>
+    <h2>Mouse</h2>
+    <ul>
+      <li>Botões, pads e teclas: clique. Mais embaixo na tecla = mais forte (velocity).</li>
+      <li>Para <b>segurar</b> um botão (ex.: PATCH + tecla): <kbd>Shift</kbd>+clique ou botão direito. Clique de novo para soltar.</li>
+      <li>Knobs: arraste para cima/baixo ou use a rodinha do mouse.</li>
+      <li>Faders e MOD: arraste. PITCH volta ao centro quando você solta.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Teclado do PC</h2>
+    <ul>
+      <li>Teclas: <kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> <kbd>D</kbd> <kbd>C</kbd>… a partir de C4, e <kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> <kbd>3</kbd> <kbd>E</kbd>… a partir de C5.</li>
+      <li><kbd>Espaço</kbd> SEQ PLAY, <kbd>Esc</kbd> PATCH (segure para os atalhos), <kbd>Enter</kbd> SCALE.</li>
+      <li><kbd>↑</kbd> <kbd>↓</kbd> giram K4, <kbd>←</kbd> <kbd>→</kbd> giram K3.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Teclado MIDI</h2>
+    <ul>
+      <li>Um teclado MIDI ligado ao PC toca as 37 teclas (C3 a C6), com velocity, pitch bend e modulação.</li>
+      <li>Funciona no Chrome e no Edge. O navegador pede permissão para MIDI.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+const NS = "http://www.w3.org/2000/svg", W = 1700, H = 780;
+// FM-1 button bits (plat.h B_*) for the SMK-37's printed buttons (panel.c PANEL_DEFAULT)
+const BTN = { FX: 0, SCALE: 1, CHORD: 2, "NOTE REPEAT": 3, PARA: 4, GLOBE: 5, PATCH: 6, BT: 7, ARP: 8, SEQ: 9,
+              "SEQ PLAY": 10, "SEQ REC": 11, "OCT-": 12, "OCT+": 13 };
+const SB = { "KNOB BANK": 0, "FADER BANK": 1, "<": 2, ">": 3 };       // plat.h SB_*
+const ENC = { K2: 0, K3: 1, K4: 2, K5: 3, K6: 4, K7: 5, K8: 6 };      // plat.h EN_*; K1 is MASTER
+const BODY = "#16181b", TRAY = "#0e0f11", LINE = "#2c3036", LABEL = "#c9ced6", BTNC = "#22262b";
+const STORE_KEY = "polly-smk37-emu-store";
+const svg = document.getElementById("panel");
+function el(tag, attrs, parent = svg) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  parent.appendChild(e);
+  return e;
+}
+function label(parent, x, y, s, size = 15, fill = LABEL, anchor = "middle") {
+  const t = el("text", { x, y, "text-anchor": anchor, "font-family": "system-ui, 'Segoe UI', Arial, sans-serif", "font-size": size,
+                         "font-weight": 600, fill, "letter-spacing": ".04em", "pointer-events": "none" }, parent);
+  t.textContent = s;
+  return t;
+}
+
+// ---------------------------------------------------------------- the panel (assets/smk37-panel.png's layout)
+el("rect", { x: 4, y: 4, width: W - 8, height: H - 8, rx: 40, fill: BODY, stroke: LINE, "stroke-width": 3 });
+// the screen
+const SCR = { x: 215, y: 40, s: 270 };
+el("rect", { x: SCR.x - 10, y: SCR.y - 10, width: SCR.s + 20, height: SCR.s + 20, rx: 14, fill: TRAY, stroke: LINE, "stroke-width": 2 });
+const canvas = document.getElementById("screen");
+Object.assign(canvas.style, { left: `${SCR.x / W * 100}%`, top: `${SCR.y / H * 100}%`, width: `${SCR.s / W * 100}%`, height: `${SCR.s / H * 100}%` });
+
+const controls = [];
+// wheels: PITCH springs back, MOD stays
+const wheels = {};
+function wheel(x, name) {
+  const g = el("g", { class: "ctl wheel" });
+  el("rect", { x, y: 60, width: 62, height: 230, rx: 14, fill: TRAY, stroke: LINE, "stroke-width": 2 }, g);
+  const thumb = el("rect", { x: x + 8, y: 0, width: 46, height: 26, rx: 6, fill: "#3a4048", class: "face" }, g);
+  label(g, x + 31, 318, name, 16);
+  const w = { g, thumb, x, name, v: name === "PITCH" ? 0 : 0 };
+  wheels[name] = w;
+  return w;
+}
+function drawWheel(w) {
+  const t = w.name === "PITCH" ? (w.v + 127) / 254 : w.v / 127;
+  w.thumb.setAttribute("y", 60 + 8 + (1 - t) * (230 - 42));
+}
+wheel(40, "PITCH"); wheel(122, "MOD");
+Object.values(wheels).forEach(drawWheel);
+
+// the four small buttons and OCT-/OCT+ beside the screen
+const buttons = [];
+function button(x, y, w, h, name, kind, bit, top, bottom) {
+  const g = el("g", { class: "ctl", role: "button", "aria-label": name });
+  el("rect", { x, y, width: w, height: h, rx: 7, fill: BTNC, stroke: "#3b4148", "stroke-width": 1.5, class: "face btn" }, g);
+  if (top) label(g, x + w / 2, y - 7, top, 12.5);
+  if (bottom) bottom.forEach((s, i) => label(g, x + w / 2, y + h + 15 + i * 14, s, 12.5));
+  const b = { g, kind, bit, name };
+  buttons.push(b);
+  return b;
+}
+const SX = 520;
+[["KNOB BANK", "FADER BANK", 60], ["<", ">", 140], ["OCT-", "OCT+", 220]].forEach(([a, b, y]) => {
+  const ka = a in SB ? "sb" : "fm", kb = b in SB ? "sb" : "fm";
+  button(SX, y, 62, 38, a, ka, ka === "sb" ? SB[a] : BTN[a], a, null);
+  button(SX + 82, y, 62, 38, b, kb, kb === "sb" ? SB[b] : BTN[b], b, null);
+});
+
+// K1..K8
+const knobs = {};
+function knob(x, y, name) {
+  const g = el("g", { class: "ctl knob", role: "slider", "aria-label": name });
+  el("circle", { cx: x, cy: y, r: 30, fill: TRAY }, g);
+  el("circle", { cx: x, cy: y, r: 24, fill: "#24282d", stroke: "#4a5058", "stroke-width": 2, class: "face" }, g);
+  const ind = el("line", { x1: x, y1: y - 22, x2: x, y2: y - 11, stroke: LABEL, "stroke-width": 3, "stroke-linecap": "round" }, g);
+  label(g, x, y - 38, name, 15);
+  knobs[name] = { g, ind, x, y, angle: 0, role: name === "K1" ? "master" : ENC[name] };
+}
+const KX = 730, KP = 92;
+for (let i = 0; i < 8; i++) knob(KX + i * KP, 80, "K" + (i + 1));
+
+// pads: top row 1-8 = hardware pads 0..7, bottom 9-16 = 8..15
+const pads = [];
+for (let i = 0; i < 16; i++) {
+  const x = KX - 36 + (i % 8) * KP, y = i < 8 ? 135 : 220;
+  const g = el("g", { class: "ctl", role: "button", "aria-label": `pad ${i + 1}` });
+  const face = el("rect", { x, y, width: 72, height: 70, rx: 8, fill: "#2a2d33", stroke: "#4b3a4f", "stroke-width": 2, class: "face" }, g);
+  label(g, x + 10, y + 18, String(i + 1), 12, "rgba(255,255,255,.55)", "start");
+  pads.push({ g, face, i });
+}
+
+// faders F1..F4
+const faders = [];
+const FX0 = 1440, FP = 64;
+for (let i = 0; i < 4; i++) {
+  const x = FX0 + i * FP;
+  const g = el("g", { class: "ctl fader", role: "slider", "aria-label": `F${i + 1}` });
+  el("rect", { x: x - 18, y: 48, width: 36, height: 160, fill: "transparent" }, g);
+  el("rect", { x: x - 3, y: 52, width: 6, height: 152, rx: 3, fill: TRAY, stroke: LINE }, g);
+  const cap = el("rect", { x: x - 20, y: 0, width: 40, height: 18, rx: 4, fill: "#3a4048", class: "face" }, g);
+  label(g, x, 36, `F${i + 1}`, 15);
+  const f = { g, cap, x, v: 64, i };
+  faders.push(f);
+}
+function drawFader(f) { f.cap.setAttribute("y", 52 + (1 - f.v / 127) * 134); }
+faders.forEach(drawFader);
+
+// the twelve function buttons: labels above the top row, below the bottom row
+const TOP = ["ARP", "NOTE REPEAT", "SCALE", "CHORD", "GLOBE", "BT"], BOT = ["PATCH", "PARA", "FX", "SEQ", "SEQ PLAY", "SEQ REC"];
+const BX = 1350, BP = 56;
+TOP.forEach((n, i) => {
+  const top = n === "NOTE REPEAT" ? null : n;
+  const b = button(BX + i * BP, 262, 46, 26, n, "fm", BTN[n], top, null);
+  if (n === "NOTE REPEAT") { label(b.g, BX + i * BP + 23, 241, "NOTE", 12.5); label(b.g, BX + i * BP + 23, 255, "REPEAT", 12.5); }
+});
+BOT.forEach((n, i) => button(BX + i * BP, 298, 46, 26, n, "fm", BTN[n], null, n.split(" ")));
+
+// the keybed: 37 keys, C3 (0) .. C6 (36); the middle 27 (F3..G5) are the FM-1's
+const keys = [];
+(function keybed() {
+  const x0 = 40, y0 = 380, w = W - 80, h = 370, nW = 22, kw = w / nW;
+  el("rect", { x: x0 - 8, y: y0 - 8, width: w + 16, height: h + 16, rx: 12, fill: TRAY });
+  const isB = (k) => [1, 3, 6, 8, 10].includes(k % 12);
+  let wi = 0;
+  const pos = [];
+  for (let k = 0; k < 37; k++) { if (!isB(k)) pos[k] = { x: x0 + wi++ * kw, b: false }; else pos[k] = { x: x0 + wi * kw - kw * 0.3, b: true }; }
+  for (const pass of [false, true]) for (let k = 0; k < 37; k++) {
+    if (pos[k].b !== pass) continue;
+    const g = el("g", { class: "ctl key", role: "button", "aria-label": `key ${k}` });
+    const outer = k < 5 || k > 31;
+    const fill = pass ? (outer ? "#3a2c18" : "#202327") : (outer ? "#efe2c6" : "#f3f3f1");
+    const kh = pass ? h * 0.6 : h, kwid = pass ? kw * 0.6 : kw - 3;
+    el("rect", { x: pos[k].x + (pass ? 0 : 1.5), y: y0, width: kwid, height: kh, rx: 5, fill, stroke: "#0b0c0d", "stroke-width": 1.5, class: "face " + (pass ? "b" : "w") }, g);
+    if (k % 12 === 0) label(g, pos[k].x + kw / 2, y0 + h - 14, "C" + (3 + k / 12), 14, "#6b6b6b");
+    keys[k] = { g, y0, h: kh };
+  }
+})();
+
+// ---------------------------------------------------------------- the emulator link
+let node = null, latchedFm = 0, latchedSb = 0, master = 2800, mFm = -1, mSb = -1;
+const heldBtn = new Map(), heldKey = new Map(), heldPad = new Map();
+function send(m) { if (node) node.port.postMessage(m); }
+function syncButtons() {
+  let fm = latchedFm, sb = latchedSb;
+  for (const b of heldBtn.values()) { if (b.kind === "fm") fm |= 1 << b.bit; else sb |= 1 << b.bit; }
+  if (fm !== mFm) { mFm = fm; send({ type: "buttons", mask: fm }); }
+  if (sb !== mSb) { mSb = sb; send({ type: "sbtn", mask: sb }); }
+  for (const b of buttons) {
+    const m = b.kind === "fm" ? fm : sb, l = b.kind === "fm" ? latchedFm : latchedSb;
+    b.g.classList.toggle("held", !!(m & (1 << b.bit)));
+    b.g.classList.toggle("latched", !!(l & (1 << b.bit)));
+  }
+}
+const keyCount = new Array(37).fill(0);
+function keyDown(k, vel) {
+  if (k < 0 || k > 36) return;
+  if (keyCount[k]++ === 0) { send({ type: "kb", key: k, down: 1, vel }); keys[k].g.classList.add("held"); }
+}
+function keyUp(k) {
+  if (k < 0 || k > 36 || keyCount[k] === 0) return;
+  if (--keyCount[k] === 0) { send({ type: "kb", key: k, down: 0 }); keys[k].g.classList.remove("held"); }
+}
+const svgPoint = (e) => { const r = svg.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
+
+for (const b of buttons) {
+  b.g.addEventListener("contextmenu", (e) => e.preventDefault());
+  b.g.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const bit = 1 << b.bit;
+    if (e.shiftKey || e.button === 2) { if (b.kind === "fm") latchedFm ^= bit; else latchedSb ^= bit; syncButtons(); return; }
+    if ((b.kind === "fm" ? latchedFm : latchedSb) & bit) { if (b.kind === "fm") latchedFm &= ~bit; else latchedSb &= ~bit; syncButtons(); return; }
+    b.g.setPointerCapture(e.pointerId);
+    heldBtn.set("p" + e.pointerId, b);
+    syncButtons();
+  });
+}
+keys.forEach((k, i) => k.g.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  k.g.setPointerCapture(e.pointerId);
+  const t = Math.max(0, Math.min(1, (svgPoint(e).y - k.y0) / k.h));
+  const vel = Math.round(30 + t * 97);
+  heldKey.set("p" + e.pointerId, i);
+  keyDown(i, vel);
+}));
+pads.forEach((p) => p.g.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  p.g.setPointerCapture(e.pointerId);
+  heldPad.set("p" + e.pointerId, p.i);
+  send({ type: "pad", pad: p.i, down: 1 });
+  p.face.setAttribute("stroke", "#f28a5a");
+}));
+function pointerUp(e) {
+  const id = "p" + e.pointerId;
+  if (heldBtn.delete(id)) syncButtons();
+  if (heldKey.has(id)) { keyUp(heldKey.get(id)); heldKey.delete(id); }
+  if (heldPad.has(id)) { const i = heldPad.get(id); heldPad.delete(id); send({ type: "pad", pad: i, down: 0 }); pads[i].face.setAttribute("stroke", "#4b3a4f"); }
+}
+svg.addEventListener("pointerup", pointerUp);
+svg.addEventListener("pointercancel", pointerUp);
+svg.addEventListener("lostpointercapture", pointerUp);
+
+function drawKnob(k) { k.ind.setAttribute("transform", `rotate(${k.angle} ${k.x} ${k.y})`); }
+function turn(k, n) {
+  if (!n) return;
+  if (k.role === "master") {
+    master = Math.max(0, Math.min(4096, master + n * 64));
+    k.angle = -135 + 270 * master / 4096;
+    send({ type: "master", value: master });
+  } else {
+    k.angle = (k.angle + n * 18) % 360;
+    send({ type: "enc", role: k.role, n });
+  }
+  drawKnob(k);
+}
+for (const k of Object.values(knobs)) {
+  if (k.role === "master") { k.angle = -135 + 270 * master / 4096; drawKnob(k); }
+  let drag = null, acc = 0;
+  k.g.addEventListener("pointerdown", (e) => { e.preventDefault(); k.g.setPointerCapture(e.pointerId); drag = { y: e.clientY, acc: 0 }; });
+  k.g.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    drag.acc += drag.y - e.clientY; drag.y = e.clientY;
+    const step = k.role === "master" ? 3 : 8, n = Math.trunc(drag.acc / step);
+    if (n) { drag.acc -= n * step; turn(k, n); }
+  });
+  k.g.addEventListener("pointerup", () => { drag = null; });
+  k.g.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+    if (Math.abs(dy) >= 50) { turn(k, dy < 0 ? 1 : -1); acc = 0; return; }
+    acc -= dy; const n = Math.trunc(acc / 25); if (n) { acc -= n * 25; turn(k, n); }
+  }, { passive: false });
+}
+function sendWheels() { send({ type: "wheels", pitch: wheels.PITCH.v, mod: wheels.MOD.v }); }
+for (const w of Object.values(wheels)) {
+  let drag = false;
+  const set = (e) => {
+    const t = 1 - Math.max(0, Math.min(1, (svgPoint(e).y - 60 - 21) / (230 - 42)));
+    w.v = w.name === "PITCH" ? Math.round(t * 254 - 127) : Math.round(t * 127);
+    drawWheel(w); sendWheels();
+  };
+  w.g.addEventListener("pointerdown", (e) => { e.preventDefault(); w.g.setPointerCapture(e.pointerId); drag = true; set(e); });
+  w.g.addEventListener("pointermove", (e) => { if (drag) set(e); });
+  const end = () => { if (!drag) return; drag = false; if (w.name === "PITCH") { w.v = 0; drawWheel(w); sendWheels(); } };
+  w.g.addEventListener("pointerup", end);
+  w.g.addEventListener("lostpointercapture", end);
+}
+for (const f of faders) {
+  let drag = false;
+  const set = (e) => {
+    f.v = Math.round(127 * (1 - Math.max(0, Math.min(1, (svgPoint(e).y - 61) / 134))));
+    drawFader(f); send({ type: "fader", i: f.i, v: f.v });
+  };
+  f.g.addEventListener("pointerdown", (e) => { e.preventDefault(); f.g.setPointerCapture(e.pointerId); drag = true; set(e); });
+  f.g.addEventListener("pointermove", (e) => { if (drag) set(e); });
+  f.g.addEventListener("pointerup", () => { drag = false; });
+}
+
+// the computer keyboard: two octaves of piano keys, and a few buttons
+const PIANO = {};
+"KeyZ KeyS KeyX KeyD KeyC KeyV KeyG KeyB KeyH KeyN KeyJ KeyM Comma".split(" ").forEach((c, i) => PIANO[c] = 12 + i);
+"KeyQ Digit2 KeyW Digit3 KeyE KeyR Digit5 KeyT Digit6 KeyY Digit7 KeyU KeyI".split(" ").forEach((c, i) => PIANO[c] = 24 + i);
+const KBTN = { Space: "SEQ PLAY", Escape: "PATCH", Enter: "SCALE" };
+addEventListener("keydown", (e) => {
+  if (!node || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code === "ArrowUp" || e.code === "ArrowDown") { turn(knobs.K4, e.code === "ArrowUp" ? -1 : 1); e.preventDefault(); return; }
+  if (e.code === "ArrowLeft" || e.code === "ArrowRight") { turn(knobs.K3, e.code === "ArrowRight" ? 1 : -1); e.preventDefault(); return; }
+  if (e.code in PIANO) { e.preventDefault(); if (!e.repeat) { heldKey.set("k" + e.code, PIANO[e.code]); keyDown(PIANO[e.code], 100); } return; }
+  if (e.code in KBTN) { e.preventDefault(); if (!e.repeat) { heldBtn.set("k" + e.code, buttons.find((b) => b.name === KBTN[e.code])); syncButtons(); } }
+});
+addEventListener("keyup", (e) => {
+  const id = "k" + e.code;
+  if (heldKey.has(id)) { keyUp(heldKey.get(id)); heldKey.delete(id); }
+  if (heldBtn.delete(id)) syncButtons();
+});
+addEventListener("blur", () => {
+  for (const [id, k] of [...heldKey]) if (id[0] === "k") { keyUp(k); heldKey.delete(id); }
+  for (const id of [...heldBtn.keys()]) if (id[0] === "k") heldBtn.delete(id);
+  syncButtons();
+});
+
+// a MIDI keyboard: notes C3..C6 as the keybed, pitch bend and the mod wheel
+async function midiOn() {
+  const say = document.getElementById("midi");
+  if (!navigator.requestMIDIAccess) { say.textContent = "MIDI: este navegador não tem Web MIDI."; return; }
+  try {
+    const acc = await navigator.requestMIDIAccess();
+    const hook = () => {
+      const ins = [...acc.inputs.values()];
+      ins.forEach((i) => i.onmidimessage = (m) => {
+        const [s, a, b] = m.data, t = s & 0xF0;
+        if (t === 0x90 && b > 0) keyDown(a - 48, b);
+        else if (t === 0x80 || (t === 0x90 && b === 0)) keyUp(a - 48);
+        else if (t === 0xE0) { wheels.PITCH.v = Math.round((((b << 7) | a) - 8192) / 8192 * 127); drawWheel(wheels.PITCH); sendWheels(); }
+        else if (t === 0xB0 && a === 1) { wheels.MOD.v = b; drawWheel(wheels.MOD); sendWheels(); }
+      });
+      say.textContent = ins.length ? `MIDI: ${ins.map((i) => i.name).join(", ")}` : "MIDI: nenhum teclado encontrado.";
+    };
+    hook(); acc.onstatechange = hook;
+  } catch { say.textContent = "MIDI: sem permissão."; }
+}
+
+// ---------------------------------------------------------------- screen, lights, pads
+const ctx = canvas.getContext("2d"), img = ctx.createImageData(240, 240);
+function drawScreen(fb) {
+  const d = img.data;
+  for (let i = 0; i < 240 * 240; i++) {
+    const v = fb[i], p = ((v >> 8) | (v << 8)) & 0xFFFF;
+    d[i * 4] = ((p >> 11) & 31) * 255 / 31; d[i * 4 + 1] = ((p >> 5) & 63) * 255 / 63; d[i * 4 + 2] = (p & 31) * 255 / 31; d[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function drawLights(fm, sb, rgb) {
+  for (const b of buttons) b.g.classList.toggle("lit", !!((b.kind === "fm" ? fm : sb) & (1 << b.bit)));
+  if (!rgb) return;
+  pads.forEach((p, i) => {
+    const r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2], m = Math.max(r, g, b);
+    if (!m) { p.face.setAttribute("fill", "#2a2d33"); return; }
+    const k = 0.35 + 0.65 * Math.min(1, m / 160), s = 255 / m;          // LED level to a visible colour
+    p.face.setAttribute("fill", `rgb(${Math.round(r * s * k)},${Math.round(g * s * k)},${Math.round(b * s * k)})`);
+  });
+}
+
+// ---------------------------------------------------------------- storage
+function loadStore() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"), out = {};
+    for (const [o, b64] of Object.entries(raw)) out[o] = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
+    return out;
+  } catch { return {}; }
+}
+function saveStore(store) {
+  try {
+    const raw = {};
+    for (const [o, u8] of Object.entries(store)) { let s = ""; for (const c of u8) s += String.fromCharCode(c); raw[o] = btoa(s); }
+    localStorage.setItem(STORE_KEY, JSON.stringify(raw));
+  } catch { /* sem armazenamento: só esta sessão */ }
+}
+
+// ---------------------------------------------------------------- switching on
+const status = document.getElementById("status"), cpu = document.getElementById("cpu");
+async function switchOn() {
+  const go = document.getElementById("go");
+  go.disabled = true; go.textContent = "Ligando...";
+  try {
+    const ac = new AudioContext({ sampleRate: 44100, latencyHint: "interactive" });
+    const [wasm] = await Promise.all([fetch("polly.wasm").then((r) => { if (!r.ok) throw new Error(`polly.wasm: ${r.status}`); return r.arrayBuffer(); }),
+                                      ac.audioWorklet.addModule("worklet.js")]);
+    node = new AudioWorkletNode(ac, "polly", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
+    node.connect(ac.destination);
+    const ready = new Promise((res) => {
+      node.port.onmessage = (e) => {
+        const m = e.data;
+        if (m.type === "ready") res();
+        else if (m.type === "frame") {
+          if (m.fb) drawScreen(m.fb);
+          drawLights(m.buttons, m.smkLit || 0, m.pads);
+          window.pollyLast = m;
+          if (m.load !== undefined) cpu.textContent = `CPU: ${m.load}%`;
+          if (m.store) saveStore(m.store);
+        }
+      };
+    });
+    node.port.postMessage({ type: "load", wasm, store: loadStore(), master }, [wasm]);
+    await ready;
+    await ac.resume();
+    document.getElementById("start").hidden = true;
+    status.textContent = "Ligado.";
+    mFm = mSb = -1; syncButtons();
+    faders.forEach((f) => send({ type: "fader", i: f.i, v: f.v }));
+    midiOn();
+  } catch (err) {
+    go.disabled = false; go.textContent = "Ligar";
+    status.textContent = "Não ligou: " + (err && err.message || err);
+  }
+}
+document.getElementById("go").addEventListener("click", switchOn);
+document.getElementById("reset").addEventListener("click", (e) => {
+  const b = e.currentTarget;
+  if (b.dataset.armed) { try { localStorage.removeItem(STORE_KEY); } catch {} location.reload(); }
+  else { b.dataset.armed = "1"; b.textContent = "Clique de novo para apagar tudo"; }
+});
+</script>
+</body>
+</html>
