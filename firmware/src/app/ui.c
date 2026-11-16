@@ -1473,9 +1473,137 @@ static int smk_key_vel(int k);
 #else
 #define KEY_VEL(k) 100
 #endif
+#if BOARD_SMK37
+/* ---- Free play (pages.c fp): the keys play proj.free_prog on FREE_CH, the band stopped; nothing else changes */
+static void free_list(void)                      /* fp.note: the notes held, lowest first; once any: also the last */
+{
+    int n = 0;
+    for (int i = 0; i < 128 && n < FREE_MAXN; i++)
+        if (fp.held[i])
+            fp.note[n++] = (uint8_t)i;
+    fp.n = (uint8_t)n;
+    if (n) {
+        memcpy(fp.last, fp.note, (size_t)n);
+        fp.nlast = (uint8_t)n;
+    }
+}
+static void free_sound(void)                     /* the sound and its level, before a first note (the click, a MIDI
+                                                  * message or the band's last beat may have changed the channel) */
+{
+    gm_midi(0xC0u | FREE_CH, proj.free_prog & 127u, 0);
+    gm_midi(0xB0u | FREE_CH, 7, fp.vol);
+    gm_midi(0xB0u | FREE_CH, 10, 64);
+    gm_midi(0xB0u | FREE_CH, 91, 40);
+    gm_midi(0xB0u | FREE_CH, 93, 0);
+}
+static void free_key(int k, int on)
+{
+    if (on) {
+        int n = clampi(key_note(k) - 12 * proj.oct + 12 * fp.oct, 0, 127);
+        if (!fp.n)
+            free_sound();
+        ui.knote[k] = (uint8_t)n;
+        ui.kmode[k] = KM_FREE;
+        if (fp.held[n] < 255u)
+            fp.held[n]++;
+        gm_midi(0x90u | FREE_CH, (uint32_t)n, (uint32_t)clampi(KEY_VEL(k), 1, 127));
+    } else {
+        int n = ui.knote[k];
+        ui.kmode[k] = KM_NONE;
+        if (fp.held[n] && !--fp.held[n])
+            gm_midi(0x80u | FREE_CH, (uint32_t)n, 0);
+    }
+    free_list();
+}
+static void free_quiet(void)                     /* its notes off, the keys let go of */
+{
+    for (int k = 0; k < NKEYS_UI; k++)
+        if (ui.kmode[k] == KM_FREE)
+            ui.kmode[k] = KM_NONE;
+    memset(fp.held, 0, sizeof fp.held);
+    fp.n = 0;
+    gm_midi(0xB0u | FREE_CH, 123, 0);            /* (all notes off) */
+}
+static void free_enter(void)
+{
+    if (arr_recording || ui.rec_want || ui.take || ui.rec_chords || ui.song_rec) {
+        say_no("FREE PLAY", "STOP RECORDING FIRST");
+        return;
+    }
+    if (arr_playing)
+        arr_play(0);                             /* the band stops (as PLAY would) */
+    lst.open = 0;
+    smk_map = 0;
+    ui.card = 0;
+    fp.from = ui.page;
+    fp.vol = 100;
+    fp.oct = 0;
+    fp.nlast = 0;
+    free_quiet();
+    free_sound();
+    ui.page = P_FREE;
+    ui.touched = -1;
+    say("FREE PLAY", GM_PROGRAM[proj.free_prog & 127u]);
+}
+static void free_exit(int back)                  /* back: to the page it came from (else the caller opens one: from
+                                                  * P_FREE, HOME's page_button opens Home) */
+{
+    free_quiet();
+    if (back)
+        ui.page = fp.from;
+    ui.touched = -1;
+}
+/* Free play's knobs: KNOB 1 the sound (kept: the project's, saved as anything is), KNOB 2 the volume; 0 = no change */
+static int free_knob(int k, int32_t e)
+{
+    if (k == 0) {
+        int v = clampi((int)(proj.free_prog & 127u) + (int)accel(EN_K1, e), 0, 127);
+        if (v == (int)(proj.free_prog & 127u))
+            return 0;
+        proj.free_prog = (uint8_t)v;
+        gm_midi(0xC0u | FREE_CH, (uint32_t)v, 0);
+        mark_dirty();
+        return 1;
+    }
+    if (k == 1) {
+        int v = clampi(fp.vol + (int)accel(EN_K2, e), 0, 127);
+        if (v == fp.vol)
+            return 0;
+        fp.vol = (uint8_t)v;
+        gm_midi(0xB0u | FREE_CH, 7, (uint32_t)v);
+        return 1;
+    }
+    return 0;
+}
+static void free_family(int d)                   /* PRESETS: the next family's first sound (eight a family) */
+{
+    int v = clampi((int)((proj.free_prog & 127u) / 8u) + d, 0, 15) * 8;
+    if (v == (int)(proj.free_prog & 127u))
+        return;
+    proj.free_prog = (uint8_t)v;
+    gm_midi(0xC0u | FREE_CH, (uint32_t)v, 0);
+    mark_dirty();
+    say(GM_FAMILY[v / 8], GM_PROGRAM[v]);
+}
+static void free_octave(int d)
+{
+    char t[4];
+    fp.oct = (int8_t)clampi(fp.oct + d, -3, 3);
+    t[0] = fp.oct < 0 ? '-' : '+';
+    t[1] = (char)('0' + (fp.oct < 0 ? -fp.oct : fp.oct));
+    t[2] = 0;
+    say("OCTAVE", t);
+}
+#endif
 static void key_down(int k)
 {
     int r = key_role(), b = ordinal(BLACK_K, 11, k);
+#if BOARD_SMK37
+    if (IS_FREE) {                               /* Free play: a note, nothing else (no shortcut, no copy) */
+        free_key(k, 1);
+        return;
+    }
+#endif
     ui.knote[k] = (uint8_t)key_note(k);
     ui.kmode[k] = KM_NONE;
     if (ui.ask && (ui.btn >> B_HOME & 1u || ui.btn >> B_SAVE & 1u)) {
@@ -1507,6 +1635,12 @@ static void key_down(int k)
 static void key_up(int k)
 {
     uint8_t m = ui.kmode[k];
+#if BOARD_SMK37
+    if (m == KM_FREE) {
+        free_key(k, 0);
+        return;
+    }
+#endif
     ui.kmode[k] = KM_NONE;
     if (m == KM_PLAY) {
         arr_key(ui.knote[k], 0, 0);
@@ -1897,6 +2031,8 @@ static void lead_rec_button(int on)
 }
 static void button_down(int b)                   /* PLAY: at once; REC: at its release (button_up) */
 {
+    if (IS_FREE)                                 /* Free play: no band, no recording */
+        return;
     switch (b) {
     case B_PLAY:
         if (ui.msg_first)                        /* the section asked for first: now playing */
@@ -1974,6 +2110,21 @@ static void slots_open(int from_list);
 static void slots_back(void);
 static void button_up(int b)                     /* a tap: released before it was used (a key, a knob, its card) */
 {
+#if BOARD_SMK37
+    if (IS_FREE) {                               /* Free play: OCT its own octave; a page button leaves (to that page,
+                                                  * HOME to Home); SEL, SAVE, REC, PLAY nothing */
+        if (b == B_OCTDN || b == B_OCTUP)
+            free_octave(b == B_OCTUP ? 1 : -1);
+        else
+            for (uint32_t i = 0; i < NPAGE_BTN; i++)
+                if (PAGE_BTN[i].btn == b) {
+                    free_exit(0);
+                    page_button(b);
+                    break;
+                }
+        return;
+    }
+#endif
     if (lst.open && b == PAGE_BTN[page_group(ui.page)].btn && b != B_HOME) {
         ui.ask = 0;                              /* the list's own button: the list goes, the page stays */
         lst.open = 0;
@@ -3890,6 +4041,13 @@ static void edit_knob(int k, int32_t e)
 }
 static void knob(int k, int32_t e)
 {
+#if BOARD_SMK37
+    if (IS_FREE) {
+        if (free_knob(k, e))
+            touch(k);
+        return;
+    }
+#endif
     if (ui.page == P_NOTES)
         ne_knob(k, e);
     else if (ui.page == P_HOME)
@@ -3921,6 +4079,12 @@ static void pattern_pick(int32_t e)
 static void presets(int32_t e)
 {
     int d = e > 0 ? 1 : -1;
+#if BOARD_SMK37
+    if (IS_FREE) {                               /* Free play: a family on (HOME held too: no song change here) */
+        free_family(d);
+        return;
+    }
+#endif
     if (ui.btn >> B_HOME & 1u) {                 /* HOME held: the song, on any page */
         ui.btn_used |= 1u << B_HOME;
         song_pick(d);
@@ -4179,7 +4343,7 @@ static int smk_kb_of(int k) { return k < NKEYS ? k + 5 : k < NKEYS + 5 ? k - NKE
 static int smk_key_vel(int k) { return plat_key_vel(smk_kb_of(k)); }
 
 static const uint8_t SMK_SECT[5] = {SEC_INTRO, SEC_A, SEC_B, SEC_FILL, SEC_END};
-enum { SMK_PAD_FOLLOW = 5, SMK_PAD_HALF = 7 };  /* (top-row pads 0..4: the sections; pad 6 free) */
+enum { SMK_PAD_FOLLOW = 5, SMK_PAD_FREE = 6, SMK_PAD_HALF = 7 };   /* (top-row pads 0..4: the sections) */
 /* the half pad toggles: a pressure wobble while it is held can read as a release and a new press, so a press counts
  * only SMK_HALF_MS after the last switch and after the pad was last seen held */
 #define SMK_HALF_MS 180u
@@ -4192,6 +4356,15 @@ static void smk_pad(int p)
     ui.card = 0;
     ui.btn_used |= ui.btn;                       /* a pad with a button held: the combination (its release: nothing) */
     ui.act_t = plat_ms();
+    if (p == SMK_PAD_FREE) {                     /* top pad 7: Free play, in and out (back to where it was) */
+        if (IS_FREE)
+            free_exit(1);
+        else
+            free_enter();
+        return;
+    }
+    if (IS_FREE)                                 /* (the band's pads: nothing in Free play) */
+        return;
     if (p < 5)
         home_key(BLACK_K[p]);
     else if (p == SMK_PAD_FOLLOW) {
@@ -4218,6 +4391,8 @@ static void smk_select(int d);
 /* an extra button pressed (released before its card): KNOB BANK the pads' map, FADER BANK the next bank, < > a step */
 static void smk_button(int i)
 {
+    if (IS_FREE)                                 /* (Free play: the map, the fader banks, the pages: nothing) */
+        return;
     if (i == SB_KNOB_BANK)                       /* KNOB BANK: the pads' map, pinned or put away */
         smk_map = (uint8_t)!smk_map;
     else if (i == SB_FADER_BANK) {               /* FADER BANK: the next bank (the map goes: one at a time) */
@@ -4344,7 +4519,7 @@ static void smk_input(void)
         if (v == smk.flast[i])
             continue;
         smk.flast[i] = (uint8_t)v;
-        if (!ui.ask)
+        if (!ui.ask && !IS_FREE)                 /* (Free play: the band's levels stay as they are) */
             smk_fader((int)i, v);
         ui.act_t = plat_ms();
     }
@@ -4389,6 +4564,8 @@ static void smk_rgb(int p, uint32_t c)
 #define SMK_YELLOW_D SMK_RGB(140, 115, 0)
 #define SMK_YELLOW_P SMK_RGB(60, 48, 0)
 #define SMK_ORANGE SMK_RGB(200, 100, 30)
+#define SMK_WHITE SMK_RGB(200, 200, 200)            /* (pad 7 in Free play) */
+#define SMK_WHITE_D SMK_RGB(18, 18, 18)             /* (pad 7 elsewhere: Free play's way in) */
 #define SMK_BLINK_MS 250u
 static uint32_t smk_shade(int ring, int waiting, uint32_t on, uint32_t dim)
 {
@@ -4401,6 +4578,11 @@ static uint32_t smk_shade(int ring, int waiting, uint32_t on, uint32_t dim)
 static void smk_pads(void)
 {
     int p, r[16], ws = 0, wp = 0;
+    if (IS_FREE) {                               /* Free play: pad 7 alone, lit (the others do nothing here) */
+        for (p = 0; p < 16; p++)
+            smk_rgb(p, p == SMK_PAD_FREE ? SMK_WHITE : 0u);
+        return;
+    }
     uint32_t on = smk.half ? SMK_YELLOW : SMK_BLUE, dim = smk.half ? SMK_YELLOW_D : SMK_BLUE_D;
     uint32_t pale = smk.half ? SMK_YELLOW_P : SMK_BLUE_P;
     for (p = 0; p < 5; p++)
@@ -4410,7 +4592,7 @@ static void smk_pads(void)
     for (p = 0; p < 5; p++)
         smk_rgb(p, smk_shade(r[p], ws, SMK_GREEN, SMK_GREEN_D));
     smk_rgb(SMK_PAD_FOLLOW, app.mode == ARR_FREE ? SMK_GREEN : SMK_GREEN_D);
-    smk_rgb(6, 0u);                              /* (free) */
+    smk_rgb(SMK_PAD_FREE, SMK_WHITE_D);           /* (Free play: dim, its way in) */
     smk_rgb(SMK_PAD_HALF, on);
     for (p = 8; p < 16; p++) {
         int w = smk.half * 8 + p - 8, rr = held_ring(w);
@@ -4440,6 +4622,10 @@ static void input(void)
             if (i == B_HOME && ui.ask) {         /* a question: HOME pressed, held or not, is no (its release: nothing) */
                 ask_end(0);
                 ui.btn_used |= m;
+                continue;
+            }
+            if ((i == B_REC || i == B_PLAY) && (btn >> B_HOME & 1u) && !ui.ask && IS_FREE) {
+                ui.btn_used |= m | 1u << B_HOME;         /* (Free play: no undo; nothing it does is undone) */
                 continue;
             }
             if ((i == B_REC || i == B_PLAY) && (btn >> B_HOME & 1u) && !ui.ask) {
@@ -4483,6 +4669,8 @@ static void input(void)
         ui.act_t = plat_ms();
     if (ui.ask)                                  /* a question: SEL yes, HOME no; the knobs change nothing */
         return;
+    if (IS_FREE)                                 /* Free play: SELECT, ALGORITHM nothing (no band to change) */
+        ev[EN_SELECT] = ev[EN_ALGO] = 0;
     if ((e = ev[EN_SELECT]) != 0) {
         if (ui.btn >> B_HOME & 1u)               /* HOME held: the tempo */
             set_tempo_hand(csong()->tempo + accel(EN_SELECT, e));

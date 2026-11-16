@@ -33,7 +33,9 @@ typedef struct {
     uint8_t clock;                        /* 0 internal (MIDI clock in ignored), 1 MIDI (followed when it comes) */
     uint8_t mout;                         /* MIDI out: the tracks on their channels, the clock */
     uint8_t click;                       /* the click: ARR_CLICK_OFF, REC (while recording or counting in), ON */
-    uint8_t rsv[3];
+    uint8_t free_prog;                    /* the SMK-37's Free play: the sound last picked, GM 0..127 (was a spare byte:
+                                           * older saves read 0, the grand piano) */
+    uint8_t rsv[2];
 } project_t;
 
 extern project_t proj;

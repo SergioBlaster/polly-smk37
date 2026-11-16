@@ -47,6 +47,8 @@
  *   fader I V                    fader I (0..3) to V (0..127); they start at 64
  *   wheel pitch|mod V            pitch -127..127, mod 0..127
  *   pads                         print the pads' colours
+ *   snap                         the songs, the band and the project now, for "expect unchanged 1" (Free play: as at snap
+ *                                but its sound)
  */
 #define GM_HOST 1
 #include <stdio.h>
@@ -622,12 +624,46 @@ static pattern_t dbg_pat;
 static songs_t dbg_songs;
 static loops_part_t dbg_loops;
 
+#if BOARD_SMK37
+/* "snap", then "expect unchanged 1": the songs, their progressions, the band's state and the project (but Free play's
+ * sound) as they were: Free play changes nothing else */
+static uint32_t snap_h;
+static uint32_t state_hash(void)
+{
+    uint32_t h = 2166136261u;
+    project_t pr = proj;
+    const uint8_t *b[3] = {(const uint8_t *)&songs, (const uint8_t *)&sloops, (const uint8_t *)&pr};
+    size_t n[3] = {sizeof songs, sizeof sloops, sizeof pr};
+    pr.free_prog = 0;
+    for (int k = 0; k < 3; k++)
+        for (size_t i = 0; i < n[k]; i++)
+            h = (h ^ b[k][i]) * 16777619u;
+    h = (h ^ (uint32_t)app.mode) * 16777619u;
+    h = (h ^ (uint32_t)app.loop) * 16777619u;
+    return h;
+}
+#endif
 static int expect(const char *what, const char *val)
 {
     int got;
     if (!strcmp(what, "voices"))                  /* the synth's voices sounding */
         got = gm_voices;
 #if BOARD_SMK37
+    else if (!strcmp(what, "free_prog"))          /* Free play's sound (kept), GM 0..127 */
+        got = proj.free_prog;
+    else if (!strcmp(what, "free_n"))             /* Free play: the notes held */
+        got = fp.n;
+    else if (!strcmp(what, "free_low")) {         /* Free play: the lowest note shown (held, or the last), -1 none */
+        int n, held;
+        const uint8_t *v = free_notes(&n, &held);
+        got = n ? v[0] : -1;
+    } else if (!strcmp(what, "free_chord")) {     /* Free play: the chord named, root*100 + type (CH_*), -1 none */
+        chord_t c;
+        got = free_chord(&c) ? c.root * 100 + c.type : -1;
+    } else if (!strcmp(what, "free_vol"))
+        got = fp.vol;
+    else if (!strcmp(what, "unchanged"))          /* 1: as at "snap" (but Free play's sound) */
+        got = state_hash() == snap_h;
     else if (!strcmp(what, "fbank"))              /* the fader bank, 0 A .. 2 C */
         got = smk.fbank;
     else if (!strcmp(what, "smkmap"))             /* KNOB BANK's map is up */
@@ -1398,6 +1434,8 @@ int main(int argc, char **argv)
                     held_keys &= ~(1u << (k - 5));
             }
             run_ms(tap ? 30 : 2);
+        } else if (!strcmp(cmd, "snap")) {         /* snap: the state now, for "expect unchanged" */
+            snap_h = state_hash();
         } else if (!strcmp(cmd, "sbtn")) {
             static const char *const SB_N[NSB] = {"KNOB_BANK", "FADER_BANK", "LEFT", "RIGHT"};
             int i = find_name(SB_N, NSB, a);

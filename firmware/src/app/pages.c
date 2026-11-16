@@ -59,13 +59,26 @@ static void theme_apply(int t)                      /* (ui.c: the bands drawn ag
 
 /* the pages (the spec's Buttons table): a button opens its first page; SELECT turns them */
 enum { P_HOME, P_SONG, P_SONG2, P_SONG3, P_LOOP, P_LOOP2, P_PATTERN, P_PATSET, P_TRACK, P_TRACK2, P_MIXER, P_TONE, P_MASTER,
-       P_STYLE, P_STYLE2, P_SETUP, P_PANEL, P_NOTES, NPAGES };
+       P_STYLE, P_STYLE2, P_SETUP, P_PANEL, P_NOTES,
+#if BOARD_SMK37
+       P_FREE,                                       /* Free play (the SMK-37's top pad 7): no button's, no SELECT's */
+#endif
+       NPAGES };
+#if BOARD_SMK37
+#define IS_FREE (ui.page == P_FREE)
+#else
+#define IS_FREE 0
+#endif
 /* (the words on screen: docs/superpowers/specs/2026-10-11-vocabulary-design.md; P_LOOP is the Progression page, P_PATTERN
  * Band, P_TRACK Sound, P_MASTER Effects. P_NOTES, the note editor: SEQ on Band, SEQ again back; SELECT walks its notes,
  * not pages) */
 static const char *const PAGE_NAME[NPAGES] = {"Home", "Song", "Song", "Song", "Progression", "Progression", "Band",
                                               "Groove length", "Sound", "Sound 2", "Mixer", "Mixer tone", "Effects",
-                                              "Style", "Style", "Setup", "Status", "Notes"};
+                                              "Style", "Style", "Setup", "Status", "Notes",
+#if BOARD_SMK37
+                                              "Free play",
+#endif
+};
 /* the page buttons: a button opens its first page, SELECT the next (the tag's dots: which). HOME: Home, one page; on
  * Home, HOME again: Song, two pages (as X0X: the pattern, again the song; P_SONG3, once a third, is no longer shown:
  * its knobs are on P_SONG2; the numbers stay) */
@@ -91,6 +104,25 @@ static const char *const TRACK_NAME[ARR_ALLTRK] = {"D1", "D2", "PC", "BA", "C1",
 /* SEC_* (SEC_FILL: the Fill asked for, AB or BA by the Main playing); Main A / B are Groove A / B on screen */
 static const char *const SECT_NAME[SEC_FILL + 1] = {"", "Intro", "Groove A", "Groove B", "Fill AB", "Fill BA", "Ending", "Fill"};
 static const char *const KEY_NAME[12] = {"C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"};
+#if BOARD_SMK37
+/* Free play (the SMK-37's top pad 7): the keys play one GM sound, the band stopped, on the click's channel 16 (free
+ * then; the click sends its own sound and controllers with each beat), and the screen names the note, the two notes'
+ * interval or the chord. Only the sound is kept (proj.free_prog, saved with the project); the rest lasts while it is on,
+ * and nothing else is touched: no song, groove, mixer or setting changes, nothing records */
+#define FREE_CH 15u
+#define FREE_MAXN 12
+static struct {
+    uint8_t from;                                    /* the page it was opened from (pad 7 again: back there) */
+    uint8_t vol;                                     /* its CC 7 */
+    int8_t oct;                                      /* the keys' octave here, -3..3 (proj.oct untouched) */
+    uint8_t held[128];                               /* each note: the keys holding it */
+    uint8_t n, note[FREE_MAXN];                      /* the notes held, lowest first */
+    uint8_t nlast, last[FREE_MAXN];                  /* the last ones played (shown, dim, once all are let go) */
+} fp;
+static const char *const IVL_NAME[13] = {"unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th",
+                                         "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th",
+                                         "octave"};
+#endif
 static const char *const GRID_NAME[ARR_NQ] = {"8", "8T", "16", "16T", "32", "off"};
 static const char *const TYPE_NAME[NXT] = {"Bypass", "Parallel", "Chord 1", "Chord 2", "Bass"};
 static const char *const REV_NAME[5] = {"Off", "Large hall", "Hall", "Chamber", "Room"};
@@ -108,7 +140,7 @@ static const char *const STEP_NAME[3] = {"beat", "half", "bar"};
 /* NAME (LOOP page 2): the presets the knob turns through, then "Prog N" (its own number) */
 static const char *const LOOP_NAME_LIST[] = {"Verse", "Chorus", "Bridge", "Pre", "Intro", "Outro", "Solo", "Break"};
 #define NLOOP_NAMES ((int)(sizeof LOOP_NAME_LIST / sizeof LOOP_NAME_LIST[0]))
-enum { KM_NONE, KM_PLAY, KM_CHORD };                 /* what a held key does */
+enum { KM_NONE, KM_PLAY, KM_CHORD, KM_FREE };       /* what a held key does (FREE: Free play's note) */
 #if BOARD_SMK37
 /* the SMK-37 build: the keys the UI knows are the FM-1's 27 (0..26, F3..G5) and the SMK-37's 10 outer keys (27..31
  * C3..E3, 32..36 G#5..C6); they play as the others, in chords and notes alike (ui.c) */
@@ -608,7 +640,7 @@ static int count_lands(void) { uint32_t p = arr_pre; return p && p <= ARR_PPQ / 
 #define HOME_HOLD_MS 400u
 static int home_shown(void)
 {
-    return (ui.btn >> B_HOME & 1u) && !ui.ask && plat_ms() - ui.btn_t[B_HOME] >= HOME_HOLD_MS;
+    return !IS_FREE && (ui.btn >> B_HOME & 1u) && !ui.ask && plat_ms() - ui.btn_t[B_HOME] >= HOME_HOLD_MS;
 }
 #if BOARD_SMK37
 static uint8_t smk_map;                              /* the SMK-37's KNOB BANK: the pads' map pinned (draw_home_held) */
@@ -714,7 +746,7 @@ static void draw_header(void)
         } else {
             int32_t x = 8;
             if (ui.page != P_HOME) {                 /* the button that opens it, a keycap before the name ("[SEQ] Band") */
-                const char *bn = BTN_LABEL[PAGE_BTN[page_group(ui.page)].btn];
+                const char *bn = IS_FREE ? "PAD 7" : BTN_LABEL[PAGE_BTN[page_group(ui.page)].btn];
                 int32_t w = text_w(&FONT_XS, bn) + 6;
                 cv_round(x, 6, w, 13, 2, K_DIM);
                 cv_round(x + 1, 7, w - 2, 11, 1, K_BG);
@@ -727,7 +759,7 @@ static void draw_header(void)
                 cv_text(x, 4, &FONT_B, t, K_TEXT);
             }
         }
-        if (ui.page != P_HOME && !sel) {             /* the tempo (HOME: its KNOB 2) */
+        if (ui.page != P_HOME && !sel && !IS_FREE) {   /* the tempo (HOME: its KNOB 2; Free play: no band) */
             if (ext)
                 cat_s(t, "ext");
             else
@@ -3582,6 +3614,97 @@ static void draw_panel(void)
     cv_blit(0, MAIN_Y);
 }
 
+#if BOARD_SMK37
+/* Free play's words: a note "C4" (middle C, MIDI 60, is C4), the notes held (or, once let go, the last ones) */
+static char *free_note_name(int n, char *t)
+{
+    char *e = cat_s(t, KEY_NAME[n % 12]);
+    int o = n / 12 - 1;
+    if (o < 0) {
+        *e++ = '-';
+        o = -o;
+    }
+    return itoa_u((uint32_t)o, e);
+}
+static const uint8_t *free_notes(int *n, int *held)
+{
+    *held = fp.n > 0;
+    *n = fp.n ? fp.n : fp.nlast;
+    return fp.n ? fp.note : fp.last;
+}
+/* what the notes are: a chord's name ("Am7", "C/E"), two notes' interval, one note's name; 0 = none to say */
+static int free_chord(chord_t *c)
+{
+    int n, held;
+    const uint8_t *v = free_notes(&n, &held);
+    return n >= 3 && chord_recognize(v, n, c);
+}
+/* Free play's page: the name large (teal while held, dim once let go), what it is under it (the chord's notes, the
+ * interval), or what to do first */
+static void draw_free(void)
+{
+    int n, held;
+    const uint8_t *v = free_notes(&n, &held);
+    uint32_t h = hash(2166136261u, 0x46524545u ^ (uint32_t)held << 8 ^ (uint32_t)n);
+    char big[40], sub[64], *e;
+    chord_t c;
+    uint16_t col = held ? K_TEAL : K_DIM;
+    for (int i = 0; i < n; i++)
+        h = hash(h, v[i]);
+    if (h == ui.sig[1])
+        return;
+    ui.sig[1] = h;
+    cv_begin(240, MAIN_H, K_BG);
+    cv_round(8, 4, 224, 112, 8, K_PANEL);
+    if (!n) {
+        text_c(120, 30, &FONT_B, "Play a key", K_TEXT);
+        text_c(120, 58, &FONT_S, "K5 picks the sound", K_DIM);
+        text_c(120, 78, &FONT_S, "pad 7 again: back", K_DIM);
+        cv_blit(0, MAIN_Y);
+        return;
+    }
+    *big = *sub = 0;
+    if (n == 1)
+        free_note_name(v[0], big);
+    else if (n == 2) {
+        int d = v[1] - v[0];
+        e = cat_s(free_note_name(v[0], big), " + ");
+        free_note_name(v[1], e);
+        if (d > 12 && d % 12 == 0)                   /* "2 octaves" */
+            cat_s(itoa_u((uint32_t)(d / 12), sub), " octaves");
+        else if (d > 12)                             /* "perfect 5th + octave" (a 12th) */
+            cat_s(cat_s(sub, IVL_NAME[d % 12]), " + octave");
+        else
+            cat_s(sub, IVL_NAME[d]);
+    } else if (free_chord(&c))
+        chord_name(c, big);
+    else
+        cat_s(big, "?");
+    if (n >= 3)                                      /* the notes, lowest first ("A3 C4 E4 G4") */
+        for (int i = 0; i < n; i++) {
+            e = sub;
+            while (*e)
+                e++;
+            if (i)
+                *e++ = ' ', *e = 0;
+            if (e - sub > 56)
+                break;
+            free_note_name(v[i], e);
+        }
+    if (text_w(&FONT_L, big) <= 208)
+        text_c(120, 18, &FONT_L, big, col);
+    else
+        text_c(120, 28, &FONT_B, big, col);
+    if (*sub) {
+        if (text_w(&FONT_S, sub) <= 208)
+            text_c(120, 76, &FONT_S, sub, held ? K_TEXT : K_DIM);
+        else
+            text_c(120, 78, &FONT_XS, sub, held ? K_TEXT : K_DIM);
+    }
+    cv_blit(0, MAIN_Y);
+}
+#endif
+
 /* HOME held: the keys' shortcuts. The five sections (black keys 1-5, their numbers over them: Intro, Groove A, Groove B,
  * Fill, Ending; each pill as wide as its name, spread over the width), then the 16 progressions (white keys 1-16) in
  * two columns by name, "-" for an empty one. Rings: teal what plays now (only while playing), coral what you asked for
@@ -4036,6 +4159,13 @@ static void ne_knobs(knob_t *k)
 static void page_knobs(knob_t *k)
 {
     memset(k, 0, 4 * sizeof *k);
+#if BOARD_SMK37
+    if (IS_FREE) {                                   /* Free play: the sound (kept), the volume (while it is on) */
+        kv(&k[0], "Sound", GM_PROGRAM[proj.free_prog & 127u], proj.free_prog & 127u, 127);
+        kn(&k[1], "Volume", fp.vol, 127);
+        return;
+    }
+#endif
     if (ui.page == P_NOTES)
         ne_knobs(k);
     else if (ui.page == P_HOME)
@@ -4215,6 +4345,12 @@ static void page_tag(char *t)
 {
     char *e;
     *t = 0;
+#if BOARD_SMK37
+    if (IS_FREE) {                                   /* "Free play>Piano" (the sound's family) */
+        cat_s(cat_s(t, "Free play>"), GM_FAMILY[(proj.free_prog & 127u) / 8u]);
+        return;
+    }
+#endif
     switch (ui.page) {
     case P_HOME:                                     /* "S1>P3 Verse", "S1" (the song: its place is HOME's to say),
                                                       * "S1>follow", "S1>new P9" */
@@ -4313,6 +4449,10 @@ static void page_footer(char *t)
         cat_s(t, "let go: nothing changes");
         return;
     }
+    if (IS_FREE) {                                   /* Free play: the keys, their octave, the way out */
+        cat_s(t, "KEYS play|" F_OCT " octave|PAD_7 exit");
+        return;
+    }
     if (!ui.any_btn && ui.page == P_HOME && app.mode == ARR_FREE && !ui.take) {   /* the first screen: REC's job, and
                                                       * where the rest is said (its main band: "Play a chord") */
         cat_s(t, F_REC " new prog|hold a button: help");
@@ -4391,6 +4531,10 @@ static void enc_line(char *t)
         cat_s(t, F_SELECT " tempo|" F_PRESET " song");
         return;
     }
+    if (IS_FREE) {                                   /* Free play: PRESETS a family of eight sounds at a time */
+        cat_s(t, F_PRESET " family");
+        return;
+    }
     if (p == P_NOTES) {                              /* (SELECT: the notes, not pages) */
         cat_s(t, F_SELECT " note|" F_ALGO " instrument|" F_PRESET " zoom");
         return;
@@ -4427,7 +4571,11 @@ static void enc_line(char *t)
 #define BOT_W 228
 #define BOT_PARTS 8
 static const char *const CTL_WORD[] = {F_SELECT, F_ALGO, F_PRESET, F_SEL, F_HOME, F_REC, F_PLAY, F_OCT, "KEYS", "WHITE",
-                                       "BLACK", F_SAVE, F_EDIT, F_SEQ};
+                                       "BLACK", F_SAVE, F_EDIT, F_SEQ,
+#if BOARD_SMK37
+                                       "PAD_7",
+#endif
+};
 static int ctl_is(const char *s, uint32_t n)         /* s[0..n) names a control */
 {
     for (uint32_t i = 0; i < sizeof CTL_WORD / sizeof CTL_WORD[0]; i++) {
@@ -5190,6 +5338,10 @@ static void draw_page(void)
 #if BOARD_SMK37
     else if (smk_map && !lst.open)
         draw_home_held();                            /* (KNOB BANK: what the pads do, as HOME held shows it) */
+#endif
+#if BOARD_SMK37
+    else if (IS_FREE)
+        draw_free();
 #endif
     else if (lst.open)
         draw_list();
