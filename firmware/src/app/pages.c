@@ -118,7 +118,10 @@ static struct {
     uint8_t held[128];                               /* each note: the keys holding it */
     uint8_t n, note[FREE_MAXN];                      /* the notes held, lowest first */
     uint8_t nlast, last[FREE_MAXN];                  /* the last ones played (shown, dim, once all are let go) */
+    uint8_t staff;                                   /* KNOB 3: the staff shown (1) or the names alone, large (0) */
+    uint8_t spell;                                   /* KNOB 4: the black keys as 0 the chord's key says, 1 sharps, 2 flats */
 } fp;
+static const char *const SPELL_NAME[3] = {"auto", "#", "b"};
 static const char *const IVL_NAME[13] = {"unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th",
                                          "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th",
                                          "octave"};
@@ -3615,11 +3618,51 @@ static void draw_panel(void)
 }
 
 #if BOARD_SMK37
-/* Free play's words: a note "C4" (middle C, MIDI 60, is C4), the notes held (or, once let go, the last ones) */
-static char *free_note_name(int n, char *t)
+/* Free play's words and staff. A black key is a sharp or a flat by KNOB 4: "auto" by the chord's key (a major chord
+ * its root's, a dominant 7th the key a 4th up, a minor chord its relative major's: F, Bb, Eb, Ab, Db flats, the rest
+ * sharps), else (one or two notes, no chord) C# Eb F# Ab Bb as everywhere (KEY_NAME) */
+static const uint8_t SH_LET[12] = {0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6}, FL_LET[12] = {0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6};
+static int free_black(int pc) { return pc == 1 || pc == 3 || pc == 6 || pc == 8 || pc == 10; }
+static int free_chord(chord_t *c);
+static int free_flats(void)                          /* 1 flats, 0 sharps, -1 as KEY_NAME */
 {
-    char *e = cat_s(t, KEY_NAME[n % 12]);
-    int o = n / 12 - 1;
+    chord_t c;
+    int key, t;
+    if (fp.spell)
+        return fp.spell == 2;
+    if (!free_chord(&c))
+        return -1;
+    t = c.type;
+    key = c.root;
+    if (t >= CH_7 && t <= CH_7SUS4)                  /* (a dominant 7th: the key a 4th up, C7 in F) */
+        key = (key + 5) % 12;
+    else if (t >= CH_MIN && t <= CH_DIM)             /* (minor, diminished: the relative major, Cm in Eb) */
+        key = (key + 3) % 12;
+    if (key == 0)
+        return -1;
+    return key == 5 || key == 10 || key == 3 || key == 8 || key == 1;
+}
+/* a note's letter (0 C .. 6 B) and accidental (-1, 0, 1) as spelled */
+static int free_spell(int n, int flats, int *acc)
+{
+    int pc = n % 12;
+    if (!free_black(pc)) {
+        *acc = 0;
+        return SH_LET[pc];
+    }
+    if (flats < 0)
+        flats = pc == 3 || pc == 8 || pc == 10;
+    *acc = flats ? -1 : 1;
+    return flats ? FL_LET[pc] : SH_LET[pc];
+}
+static char *free_note_name(int n, char *t)          /* "C4", "F#5", "Bb3" (middle C, MIDI 60, is C4) */
+{
+    int acc, l = free_spell(n, free_flats(), &acc), o = n / 12 - 1;
+    char *e = t;
+    *e++ = "CDEFGAB"[l];
+    if (acc)
+        *e++ = acc > 0 ? '#' : 'b';
+    *e = 0;
     if (o < 0) {
         *e++ = '-';
         o = -o;
@@ -3639,30 +3682,94 @@ static int free_chord(chord_t *c)
     const uint8_t *v = free_notes(&n, &held);
     return n >= 3 && chord_recognize(v, n, c);
 }
-/* Free play's page: the name large (teal while held, dim once let go), what it is under it (the chord's notes, the
- * interval), or what to do first */
-static void draw_free(void)
+
+/* ---- the staff: a grand staff (treble and bass clefs), line spacing 6 px, a step (a letter) 3 px. A note's step is
+ * octave * 7 + letter (C4: 28, the ledger line between the staves); the treble's lines E4 G4 B4 D5 F5 (30 .. 38), the
+ * bass's G2 B2 D3 F3 A3 (18 .. 26). Three ledger lines either way (steps 12 .. 44); past them an octave in, "8va"
+ * over the staff ("8vb" under) */
+#define ST_X0 100                                    /* the staff's left end (the system's line) */
+#define ST_X1 230
+#define ST_TOP 13                                    /* step 44's y */
+#define ST_NX 172                                    /* the notes' column */
+static int32_t st_y(int step) { return ST_TOP + (44 - step) * 3; }
+/* the clefs, drawn from paths (tools: the scratchpad's clefs.py), a row a uint16_t, bit 15 the leftmost column. The
+ * treble's row 8 on its top line (F5), the bass's row 2 on its top line (A3) */
+static const uint16_t CLEF_G[42] = {0x0000, 0x0380, 0x03C0, 0x06C0, 0x06C0, 0x0CC0, 0x0CC0, 0x08C0, 0x0880, 0x0980,
+    0x1980, 0x0900, 0x0900, 0x0F00, 0x0F00, 0x0F00, 0x0700, 0x0700, 0x0300, 0x0380, 0x03C0, 0x0FE0, 0x1FB0, 0x1BB0,
+    0x3398, 0x3398, 0x3318, 0x3318, 0x3318, 0x1B30, 0x0FE0, 0x07C0, 0x0300, 0x0100, 0x0100, 0x0100, 0x1980, 0x1D00,
+    0x1D00, 0x1F00, 0x0E00, 0x0000};
+static const uint16_t CLEF_F[22] = {0x0000, 0x0000, 0x07C0, 0x1CE0, 0x1866, 0x3026, 0x3030, 0x3830, 0x3830, 0x3830,
+    0x0026, 0x0066, 0x0040, 0x00C0, 0x0180, 0x0300, 0x0600, 0x0C00, 0x3800, 0x3000, 0x0000, 0x0000};
+static const uint16_t HEAD[5] = {0x3E00, 0x6300, 0xC180, 0x6300, 0x3E00};   /* a whole note, 9 x 5, centre (4, 2) */
+static const uint16_t SHARP[8] = {0x5000, 0x5000, 0xF800, 0x5000, 0x5000, 0xF800, 0x5000, 0x5000};   /* 5 x 8 */
+static const uint16_t FLAT[9] = {0x8000, 0x8000, 0x8000, 0x8000, 0xE000, 0x9000, 0x9000, 0xA000, 0xC000};   /* 4 x 9 */
+static void bm16(int32_t x, int32_t y, const uint16_t *rows, int h, uint16_t c)
 {
-    int n, held;
-    const uint8_t *v = free_notes(&n, &held);
-    uint32_t h = hash(2166136261u, 0x46524545u ^ (uint32_t)held << 8 ^ (uint32_t)n);
-    char big[40], sub[64], *e;
-    chord_t c;
-    uint16_t col = held ? K_TEAL : K_DIM;
-    for (int i = 0; i < n; i++)
-        h = hash(h, v[i]);
-    if (h == ui.sig[1])
-        return;
-    ui.sig[1] = h;
-    cv_begin(240, MAIN_H, K_BG);
-    cv_round(8, 4, 224, 112, 8, K_PANEL);
-    if (!n) {
-        text_c(120, 30, &FONT_B, "Play a key", K_TEXT);
-        text_c(120, 58, &FONT_S, "K5 picks the sound", K_DIM);
-        text_c(120, 78, &FONT_S, "pad 7 again: back", K_DIM);
-        cv_blit(0, MAIN_Y);
-        return;
+    for (int r = 0; r < h; r++)
+        for (int i = 0; i < 16; i++)
+            if (rows[r] >> (15 - i) & 1u)
+                cv_pset(x + i, y + r, c);
+}
+static void draw_staff(const uint8_t *v, int n, int held)
+{
+    int st[FREE_MAXN], acc[FREE_MAXN], dx[FREE_MAXN], va = 0, vb = 0, flats = free_flats();
+    int32_t ax_last_step = -100, ax_col = 0;
+    uint16_t hc = held ? K_TEAL : K_DIM;
+    for (int k = 0; k < 5; k++) {                    /* the staves */
+        cv_rect(ST_X0, st_y(38 - 2 * k), ST_X1 - ST_X0, 1, K_DIM);
+        cv_rect(ST_X0, st_y(26 - 2 * k), ST_X1 - ST_X0, 1, K_DIM);
     }
+    cv_rect(ST_X0, st_y(38), 1, st_y(18) - st_y(38) + 1, K_DIM);   /* the system's line */
+    bm16(ST_X0 + 3, st_y(38) - 8, CLEF_G, 42, K_TEXT);
+    bm16(ST_X0 + 3, st_y(26) - 2, CLEF_F, 22, K_TEXT);
+    for (int i = 0; i < n; i++) {                    /* the steps, an octave in past the ledger lines */
+        int a, l = free_spell(v[i], flats, &a), s = (v[i] / 12 - 1) * 7 + l;
+        while (s > 44)
+            s -= 7, va = 1;
+        while (s < 12)
+            s += 7, vb = 1;
+        st[i] = s;
+        acc[i] = a;
+        dx[i] = 0;
+    }
+    for (int i = 1; i < n; i++)                      /* a 2nd (or the same letter twice): the upper one to the right */
+        if (st[i] - st[i - 1] <= 1 && !dx[i - 1])
+            dx[i] = 9;
+    for (int i = 0; i < n; i++) {
+        int32_t x = ST_NX + dx[i], y = st_y(st[i]);
+        for (int s = 40; s <= st[i]; s += 2)         /* the ledger lines: over the treble, under the bass, middle C */
+            cv_rect(x - 7, st_y(s), 15, 1, K_TEXT);
+        for (int s = 16; s >= st[i]; s -= 2)
+            cv_rect(x - 7, st_y(s), 15, 1, K_TEXT);
+        if (st[i] == 28)
+            cv_rect(x - 7, st_y(28), 15, 1, K_TEXT);
+        bm16(x - 4, y - 2, HEAD, 5, hc);
+    }
+    for (int i = n - 1; i >= 0; i--) {               /* the accidentals, top down, a column further left when close */
+        int32_t y = st_y(st[i]);
+        if (!acc[i])
+            continue;
+        ax_col = ax_last_step - st[i] < 6 ? ax_col + 1 : 0;
+        if (ax_col > 2)
+            ax_col = 0;
+        ax_last_step = st[i];
+        if (acc[i] > 0)
+            bm16(ST_NX - 13 - 7 * ax_col, y - 4, SHARP, 8, hc);
+        else
+            bm16(ST_NX - 12 - 7 * ax_col, y - 6, FLAT, 9, hc);
+    }
+    if (va)
+        cv_text(ST_X1 - text_w(&FONT_XS, "8va"), 0, &FONT_XS, "8va", K_DIM);
+    if (vb)
+        cv_text(ST_X1 - text_w(&FONT_XS, "8vb"), 100, &FONT_XS, "8vb", K_DIM);
+}
+
+/* Free play's page: the name (teal while held, dim once let go) and what it is (the interval, the chord's notes); the
+ * staff beside them (KNOB 3), or the name alone, large; before any key, what to do */
+static void free_what(const uint8_t *v, int n, char *big, char *sub)
+{
+    chord_t c;
+    char *e;
     *big = *sub = 0;
     if (n == 1)
         free_note_name(v[0], big);
@@ -3676,31 +3783,94 @@ static void draw_free(void)
             cat_s(cat_s(sub, IVL_NAME[d % 12]), " + octave");
         else
             cat_s(sub, IVL_NAME[d]);
-    } else if (free_chord(&c))
-        chord_name(c, big);
-    else
-        cat_s(big, "?");
-    if (n >= 3)                                      /* the notes, lowest first ("A3 C4 E4 G4") */
-        for (int i = 0; i < n; i++) {
+    } else if (n >= 3) {
+        if (free_chord(&c))
+            chord_name(c, big);
+        else
+            cat_s(big, "?");
+        for (int i = 0; i < n; i++) {                /* the notes, lowest first ("A3 C4 E4 G4") */
             e = sub;
             while (*e)
                 e++;
+            if (e - sub > 52)
+                break;
             if (i)
                 *e++ = ' ', *e = 0;
-            if (e - sub > 56)
-                break;
             free_note_name(v[i], e);
         }
+    }
+}
+static void text_lines(int32_t cx, int32_t y, int32_t w, const felucca_font_t *f, const char *s, uint16_t c)
+{                                                    /* centred, broken at spaces to fit w (up to three lines) */
+    char ln[64];
+    int lines = 0;
+    while (*s && lines < 3) {
+        int n = 0, cut = 0;
+        while (s[n] && n < 63) {
+            ln[n] = s[n];
+            ln[n + 1] = 0;
+            if (text_w(f, ln) > w)
+                break;
+            if (s[n + 1] == ' ' || !s[n + 1])
+                cut = n + 1;
+            n++;
+        }
+        if (!cut)
+            cut = n ? n : 1;
+        for (int i = 0; i < cut; i++)
+            ln[i] = s[i];
+        ln[cut] = 0;
+        text_c(cx, y, f, ln, c);
+        y += f == &FONT_XS ? 12 : 15;
+        s += cut;
+        while (*s == ' ')
+            s++;
+        lines++;
+    }
+}
+static void draw_free(void)
+{
+    int n, held;
+    const uint8_t *v = free_notes(&n, &held);
+    uint32_t h = hash(2166136261u, 0x46524545u ^ (uint32_t)held << 8 ^ (uint32_t)n ^ (uint32_t)fp.staff << 12 ^
+                                       (uint32_t)fp.spell << 13);
+    char big[40], sub[64];
+    uint16_t col = held ? K_TEAL : K_DIM;
+    for (int i = 0; i < n; i++)
+        h = hash(h, v[i]);
+    if (h == ui.sig[1])
+        return;
+    ui.sig[1] = h;
+    cv_begin(240, MAIN_H, K_BG);
+    cv_round(8, 2, 224, 116, 8, K_PANEL);
+    free_what(v, n, big, sub);
+    if (fp.staff) {                                  /* the name at the left, the staff at the right */
+        draw_staff(v, n, held);
+        if (!n) {
+            text_lines(52, 30, 84, &FONT_S, "Play a key", K_TEXT);
+            text_lines(52, 54, 84, &FONT_XS, "K5 picks the sound, pad 7 again: back", K_DIM);
+        } else {
+            const felucca_font_t *f = text_w(&FONT_L, big) <= 84 ? &FONT_L : text_w(&FONT_B, big) <= 84 ? &FONT_B : &FONT_S;
+            text_c(52, f == &FONT_L ? 16 : 24, f, big, col);
+            if (*sub)
+                text_lines(52, 62, 84, &FONT_XS, sub, held ? K_TEXT : K_DIM);
+        }
+        cv_blit(0, MAIN_Y);
+        return;
+    }
+    if (!n) {
+        text_c(120, 30, &FONT_B, "Play a key", K_TEXT);
+        text_c(120, 58, &FONT_S, "K5 picks the sound", K_DIM);
+        text_c(120, 78, &FONT_S, "pad 7 again: back", K_DIM);
+        cv_blit(0, MAIN_Y);
+        return;
+    }
     if (text_w(&FONT_L, big) <= 208)
         text_c(120, 18, &FONT_L, big, col);
     else
         text_c(120, 28, &FONT_B, big, col);
-    if (*sub) {
-        if (text_w(&FONT_S, sub) <= 208)
-            text_c(120, 76, &FONT_S, sub, held ? K_TEXT : K_DIM);
-        else
-            text_c(120, 78, &FONT_XS, sub, held ? K_TEXT : K_DIM);
-    }
+    if (*sub)
+        text_lines(120, 76, 208, text_w(&FONT_S, sub) <= 208 ? &FONT_S : &FONT_XS, sub, held ? K_TEXT : K_DIM);
     cv_blit(0, MAIN_Y);
 }
 #endif
@@ -4163,6 +4333,8 @@ static void page_knobs(knob_t *k)
     if (IS_FREE) {                                   /* Free play: the sound (kept), the volume (while it is on) */
         kv(&k[0], "Sound", GM_PROGRAM[proj.free_prog & 127u], proj.free_prog & 127u, 127);
         kn(&k[1], "Volume", fp.vol, 127);
+        kv(&k[2], "Staff", fp.staff ? "on" : "off", fp.staff, 1);
+        kv(&k[3], "Spelling", SPELL_NAME[fp.spell % 3u], fp.spell, 2);
         return;
     }
 #endif

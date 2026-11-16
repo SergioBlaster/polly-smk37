@@ -1540,6 +1540,8 @@ static void free_enter(void)
     fp.from = ui.page;
     fp.vol = 100;
     fp.oct = 0;
+    fp.staff = 1;
+    fp.spell = 0;
     fp.nlast = 0;
     free_quiet();
     free_sound();
@@ -1573,6 +1575,20 @@ static int free_knob(int k, int32_t e)
             return 0;
         fp.vol = (uint8_t)v;
         gm_midi(0xB0u | FREE_CH, 7, (uint32_t)v);
+        return 1;
+    }
+    if (k == 2) {                                /* KNOB 3: the staff, or the names alone */
+        int v = e > 0;
+        if (v == fp.staff)
+            return 0;
+        fp.staff = (uint8_t)v;
+        return 1;
+    }
+    if (k == 3) {                                /* KNOB 4: the black keys spelled auto, sharps, flats */
+        int v = clampi(fp.spell + (e > 0 ? 1 : -1), 0, 2);
+        if (v == fp.spell)
+            return 0;
+        fp.spell = (uint8_t)v;
         return 1;
     }
     return 0;
