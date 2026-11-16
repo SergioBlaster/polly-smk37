@@ -2,6 +2,8 @@
 
 Data: 16/11/2026 · Branch: `smk37-nomes` (genki-port) · Só no build do SMK-37 (`BOARD_SMK37`)
 
+**Situação:** concluído nas 3 fases, publicado na release v0.4.1-smk37.2 e testado no SMK-37 Pro (16/11/2026).
+
 ## O que é
 
 Um modo para **tocar livremente** no teclado, sem a banda.

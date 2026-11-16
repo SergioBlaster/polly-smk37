@@ -17,7 +17,7 @@ acrescenta:
 - **Emulador no navegador** (`web/emu/smk37.html`) e CI no GitHub Actions (`.github/workflows/smk37.yml`), que
   compila o firmware, roda os testes e tira capturas de todas as telas nos três temas.
 
-Firmware não oficial e experimental: use por sua conta e risco.
+Testado num SMK-37 Pro (v0.4.1-smk37.2, com o modo livre). Firmware não oficial: use por sua conta e risco.
 
 ## O que há nesta pasta
 
@@ -71,7 +71,7 @@ FM-1, running on the **M-Vave SMK-37 Pro**. It starts from the port in
 - **A browser emulator** (`web/emu/smk37.html`) and CI on GitHub Actions (`.github/workflows/smk37.yml`). The CI
   builds the firmware, runs the tests and takes screenshots of every screen in the three themes.
 
-Unofficial, experimental firmware: use it at your own risk.
+Tested on an SMK-37 Pro (v0.4.1-smk37.2, Free play included). Unofficial firmware: use it at your own risk.
 
 ## What's in this folder
 

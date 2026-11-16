@@ -26,7 +26,7 @@ Every change applies only to the SMK-37 build (`BOARD_SMK37`). The FM-1 build ke
 | **CI on GitHub Actions** | `.github/workflows/smk37.yml` builds the FM-1 and SMK-37 images and runs the tests, including `tests/scenarios/smk37/help.polly`. It also takes screenshots of every screen in the three themes and builds the emulator. The ready firmware comes out as an artifact. |
 | **Beginner's guide** | With a key guide for the SMK-37, in English (`smk37-extras/docs/Polly-SMK37-beginners-guide.pdf`) and Portuguese (`smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`). |
 
-Unofficial, experimental firmware: use it at your own risk. To go back to the stock firmware, use M-Vave's M-UPGRADE
+Tested on an SMK-37 Pro (v0.4.1-smk37.2, Free play included). Unofficial firmware: use it at your own risk. To go back to the stock firmware, use M-Vave's M-UPGRADE
 with `SMK-37 Pro_016.fwsc`.
 
 ## O que muda nesta versão
@@ -44,7 +44,7 @@ Todas as mudanças valem só para o build do SMK-37 (`BOARD_SMK37`). O build do 
 | **CI no GitHub Actions** | `.github/workflows/smk37.yml` compila os builds do FM-1 e do SMK-37 e roda os testes, incluindo `tests/scenarios/smk37/help.polly`. Também tira capturas de todas as telas nos três temas e gera o emulador. O firmware pronto sai como artefato. |
 | **Guia para iniciantes** | Com o guia de teclas do SMK-37, em português (`smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`) e em inglês (`smk37-extras/docs/Polly-SMK37-beginners-guide.pdf`). |
 
-Firmware não oficial e experimental: use por sua conta e risco. Para voltar ao firmware original, use o M-UPGRADE da
+Testado num SMK-37 Pro (v0.4.1-smk37.2, com o modo livre). Firmware não oficial: use por sua conta e risco. Para voltar ao firmware original, use o M-UPGRADE da
 M-Vave com o `SMK-37 Pro_016.fwsc`.
 
 ---
