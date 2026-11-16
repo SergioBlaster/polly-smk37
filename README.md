@@ -1,5 +1,30 @@
 # Polly for the M-VAVE FM-1
 
+> **Esta é uma versão do Polly para o M-Vave SMK-37 Pro.** Ela parte do port de
+> [genkigenki/fm1-polly](https://github.com/genkigenki/fm1-polly) (branch `smk37`, Polly 0.4.1) e acrescenta as
+> mudanças listadas em [O que muda nesta versão](#o-que-muda-nesta-versão). Para instalar, usar o emulador ou ler o
+> guia em português, veja [smk37-extras/](smk37-extras/README.md). O texto em inglês mais abaixo é o README
+> original do Polly.
+
+## O que muda nesta versão
+
+Todas as mudanças valem só para o build do SMK-37 (`BOARD_SMK37`). O build do FM-1 continua com os nomes dele.
+
+| Mudança | Detalhes |
+| --- | --- |
+| **Nomes do SMK-37 na tela** | A tela usa os nomes impressos no SMK-37: PATCH, SCALE, PARA, NOTE REPEAT, CHORD, GLOBE, BT, SEQ PLAY, SEQ REC, K2–K8. Antes ela mostrava os do FM-1 (HOME, SEL, EDIT, LFO, ENV, GLO, SAVE, PLAY, REC, SELECT, KNOB 1–4). Isso vale para os rodapés, os cartões de ajuda e os avisos. A tabela fica em `firmware/src/app/btn_names.h`. |
+| **Tela que dispensa manual** | Cada coluna da faixa de knobs mostra qual knob a controla (K5–K8), em todas as páginas. KNOB BANK, FADER BANK, `<` e `>` mostram um cartão de ajuda quando segurados por 1 segundo, como os outros botões, e agem ao soltar. O cartão do KNOB BANK explica o mapa dos pads, inclusive o pad 8 (P1–P8 / P9–P16). O K1 mostra "VOLUME nn%". |
+| **Três temas de tela** | Claro (o original), escuro e **neon** (fundo quase preto com ciano, magenta e âmbar, inspirado em genkigenki.github.io/smk37). Para trocar: GLOBE, `>`, K5. A escolha fica salva no projeto. |
+| **Emulador do SMK-37 no navegador** | `web/emu/smk37.html` desenha o painel do SMK-37 (37 teclas com velocity, 16 pads coloridos, faders, rodas, K1–K8) e roda o mesmo firmware compilado para WebAssembly. Aceita mouse, teclado do PC e teclado MIDI. Gerar com `BOARD=smk37 sh web/emu/build.sh`. |
+| **Instalador local** | `smk37-extras/Abrir instalador.bat` grava este build pelo USB-MIDI do Chrome ou do Edge. O instalador do genkigenki só grava os firmwares do catálogo dele. |
+| **CI no GitHub Actions** | `.github/workflows/smk37.yml` compila os builds do FM-1 e do SMK-37 e roda os testes, incluindo `tests/scenarios/smk37/help.polly`. Também tira capturas de todas as telas nos três temas e gera o emulador. O firmware pronto sai como artefato. |
+| **Guia para iniciantes** | Em português, com o guia de teclas do SMK-37: `smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`. |
+
+Firmware não oficial e experimental: use por sua conta e risco. Para voltar ao firmware original, use o M-UPGRADE da
+M-Vave com o `SMK-37 Pro_016.fwsc`.
+
+---
+
 Polly is a pocket arranger for the M-VAVE FM-1. It's inspired by the Yamaha QY70. A style plays a band of eight
 instruments, and the chords you play steer it. The sounds come from the General MIDI set of
 [Sonivox EAS](https://github.com/EmbeddedSynth/sonivox). MIDI in plays them too, so Polly also works as a
