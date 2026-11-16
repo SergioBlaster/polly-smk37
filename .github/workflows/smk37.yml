@@ -79,10 +79,12 @@ jobs:
           cp build/host/polly_host_smk37 ../host_light
           CC="$CC -DPOLLY_THEME_DEFAULT=1" sh host/build_host.sh smk37
           cp build/host/polly_host_smk37 ../host_dark
+          CC="$CC -DPOLLY_THEME_DEFAULT=2" sh host/build_host.sh smk37
+          cp build/host/polly_host_smk37 ../host_neon
           cp ../host_light build/host/polly_host_smk37
           mkdir -p ../smk-scripts
           fail=0
-          for theme in light dark; do
+          for theme in light dark neon; do
             for s in screens cards pages lists encoders first home; do
               [ -f tests/scenarios/$s.polly ] || continue
               # the FM-1 scripts' expects check FM-1 words; the shots and the simulator's own layout checks

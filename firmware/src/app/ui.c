@@ -3898,11 +3898,11 @@ static void knob(int k, int32_t e)
         edit_knob(k, e);
     else if (ui.page != P_PANEL)
         song_page_knob(k, e);
-    else if (k == 0 && e) {                      /* Status: the screen's theme, light or dark */
-        uint8_t t = (uint8_t)(e > 0);
-        if (t == proj.theme)
+    else if (k == 0 && e) {                      /* Status: the screen's theme, light, dark or neon */
+        int t = proj.theme % NTHEME + (e > 0 ? 1 : -1);
+        if (t < 0 || t >= NTHEME)
             return;
-        proj.theme = t;
+        proj.theme = (uint8_t)t;
         theme_apply(t);
         memset(ui.sig, 0, sizeof ui.sig);        /* (every band drawn again, in the new colours) */
         lcd_fill(0, 0, 240, 240, K_BG);

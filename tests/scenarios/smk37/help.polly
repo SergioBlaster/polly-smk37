@@ -53,3 +53,14 @@ sbtn RIGHT
 expect page 16
 expect knobs_shown 1
 shot status_theme.png
+# ---- the theme, K5 (the first knob, K1 in the simulator): light, dark, neon, and no further
+expect theme 0
+turn K1 1
+expect theme 1
+turn K1 1
+expect theme 2
+shot status_neon.png
+turn K1 3
+expect theme 2
+turn K1 -2
+expect theme 0

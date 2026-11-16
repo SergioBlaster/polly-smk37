@@ -1129,6 +1129,8 @@ static int expect(const char *what, const char *val)
     } else if (!strncmp(what, "held_ring", 9))    /* held_ringN (1..16): HOME held, progression N's ring: 0 none, 1 teal
                                                    * (playing), 2 coral (asked for), 3 ink (PLAY starts it) */
         got = held_ring((atoi(what + 9) - 1) & 15);
+    else if (!strcmp(what, "theme"))              /* the screen's theme: 0 light, 1 dark, 2 neon */
+        got = proj.theme;
     else if (!strcmp(what, "knobs_shown"))        /* the knob strip has a knob in it */
         got = knobs_shown();
     else if (!strcmp(what, "list_sel"))           /* the list's row picked, 0.. */

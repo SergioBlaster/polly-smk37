@@ -15,12 +15,16 @@
  * edit's flash, the knob last turned, REC, a chord you play over a progression, questions and messages). Ink and its
  * neutrals: everything that stays put (names, values, selections, the place PLAY starts). Slate / amber: Groove A /
  * Groove B, on their pills only (Intro, Fills, Ending: neutral outlined pills). Plum: the melodies */
-/* the theme (Status page, KNOB 1: proj.theme): the same meanings in a light or a dark palette. The colours are read
+/* the theme (Status page, KNOB 1: proj.theme): the same meanings in a light, a dark or a neon palette
+ * (neon: after genkigenki.github.io/smk37, cyan and magenta on near black). The colours are read
  * from kpal (theme_apply copies the theme's row in); the light one is the default, as before */
 enum { KC_BG, KC_PANEL, KC_PANEL2, KC_LINE, KC_DIM, KC_FAINT, KC_TEXT, KC_ACCENT, KC_ACCENT_L, KC_TEAL, KC_TEAL_T, KC_TEAL_M, KC_AMBER, KC_SLATE, KC_PLUM, KC_SLATE_L, KC_AMBER_L, KC_PLUM_P, KC_FLASH, KC_REC_T, NKC };
-static const uint16_t PALETTE[2][NKC] = {
+#define NTHEME 3
+static const char *const THEME_NAME[NTHEME] = {"light", "dark", "neon"};
+static const uint16_t PALETTE[NTHEME][NKC] = {
     {RGB(250, 244, 232), RGB(236, 228, 212), RGB(222, 211, 192), RGB(216, 205, 186), RGB(112, 98, 84), RGB(150, 136, 118), RGB(72, 58, 48), RGB(242, 120, 72), RGB(248, 196, 172), RGB(38, 166, 154), RGB(196, 230, 222), RGB(118, 196, 186), RGB(206, 138, 34), RGB(84, 118, 168), RGB(150, 112, 170), RGB(205, 212, 222), RGB(240, 218, 182), RGB(200, 178, 208), RGB(250, 196, 170), RGB(246, 214, 204)},
-    {RGB(26, 23, 20), RGB(44, 39, 33), RGB(66, 58, 49), RGB(74, 65, 55), RGB(178, 164, 146), RGB(128, 117, 103), RGB(240, 231, 216), RGB(242, 128, 82), RGB(112, 60, 40), RGB(66, 192, 178), RGB(30, 72, 66), RGB(44, 124, 114), RGB(224, 162, 62), RGB(112, 148, 204), RGB(182, 144, 204), RGB(50, 60, 78), RGB(80, 64, 36), RGB(72, 58, 84), RGB(122, 66, 44), RGB(92, 46, 36)}};
+    {RGB(26, 23, 20), RGB(44, 39, 33), RGB(66, 58, 49), RGB(74, 65, 55), RGB(178, 164, 146), RGB(128, 117, 103), RGB(240, 231, 216), RGB(242, 128, 82), RGB(112, 60, 40), RGB(66, 192, 178), RGB(30, 72, 66), RGB(44, 124, 114), RGB(224, 162, 62), RGB(112, 148, 204), RGB(182, 144, 204), RGB(50, 60, 78), RGB(80, 64, 36), RGB(72, 58, 84), RGB(122, 66, 44), RGB(92, 46, 36)},
+    {RGB(4, 6, 12), RGB(10, 20, 36), RGB(18, 36, 60), RGB(27, 42, 68), RGB(127, 155, 176), RGB(70, 92, 112), RGB(223, 248, 255), RGB(255, 60, 210), RGB(92, 22, 78), RGB(60, 240, 255), RGB(10, 54, 66), RGB(30, 128, 148), RGB(255, 176, 42), RGB(70, 140, 255), RGB(70, 240, 160), RGB(14, 34, 72), RGB(70, 48, 12), RGB(14, 62, 44), RGB(112, 28, 96), RGB(72, 14, 60)}};
 static uint16_t kpal[NKC] = {RGB(250, 244, 232), RGB(236, 228, 212), RGB(222, 211, 192), RGB(216, 205, 186), RGB(112, 98, 84), RGB(150, 136, 118), RGB(72, 58, 48), RGB(242, 120, 72), RGB(248, 196, 172), RGB(38, 166, 154), RGB(196, 230, 222), RGB(118, 196, 186), RGB(206, 138, 34), RGB(84, 118, 168), RGB(150, 112, 170), RGB(205, 212, 222), RGB(240, 218, 182), RGB(200, 178, 208), RGB(250, 196, 170), RGB(246, 214, 204)};
 #define MSG_BAR 1
 #define K_BG kpal[KC_BG]
@@ -45,10 +49,12 @@ static uint16_t kpal[NKC] = {RGB(250, 244, 232), RGB(236, 228, 212), RGB(222, 21
 #define K_REC_T kpal[KC_REC_T]          /* a strip being recorded, its tint */
 #define K_REC K_ACCENT                                /* REC (its dot, its line): you */
 
-static void theme_apply(int dark)                   /* (ui.c: the bands drawn again after a change) */
+static void theme_apply(int t)                      /* (ui.c: the bands drawn again after a change) */
 {
+    if (t < 0 || t >= NTHEME)
+        t = 0;
     for (int i = 0; i < NKC; i++)
-        kpal[i] = PALETTE[dark ? 1 : 0][i];
+        kpal[i] = PALETTE[t][i];
 }
 
 /* the pages (the spec's Buttons table): a button opens its first page; SELECT turns them */
@@ -3967,7 +3973,7 @@ static void song_page_knobs(knob_t *k)
         kv(&k[3], "Click", CLICK_NAME[proj.click % 3u], proj.click, 2);
         break;
     case P_PANEL:                                    /* the screen's theme */
-        kv(&k[0], "Theme", proj.theme ? "dark" : "light", proj.theme, 1);
+        kv(&k[0], "Theme", THEME_NAME[proj.theme % NTHEME], proj.theme, NTHEME - 1);
         break;
     default: break;
     }
