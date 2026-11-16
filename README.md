@@ -23,7 +23,7 @@ Every change applies only to the SMK-37 build (`BOARD_SMK37`). The FM-1 build ke
 | **SMK-37 emulator in the browser** | `web/emu/smk37.html` draws the SMK-37's panel (37 velocity keys, 16 coloured pads, faders, wheels, K1–K8) and runs the same firmware built for WebAssembly. It takes the mouse, the computer keyboard and a MIDI keyboard. Build it with `BOARD=smk37 sh web/emu/build.sh`. |
 | **Local installer** | `smk37-extras/Abrir instalador.bat` writes this build over USB-MIDI from Chrome or Edge. genkigenki's installer only writes the firmwares in its own catalogue. |
 | **CI on GitHub Actions** | `.github/workflows/smk37.yml` builds the FM-1 and SMK-37 images and runs the tests, including `tests/scenarios/smk37/help.polly`. It also takes screenshots of every screen in the three themes and builds the emulator. The ready firmware comes out as an artifact. |
-| **Beginner's guide** | In Portuguese, with a key guide for the SMK-37: `smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`. |
+| **Beginner's guide** | With a key guide for the SMK-37, in English (`smk37-extras/docs/Polly-SMK37-beginners-guide.pdf`) and Portuguese (`smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`). |
 
 Unofficial, experimental firmware: use it at your own risk. To go back to the stock firmware, use M-Vave's M-UPGRADE
 with `SMK-37 Pro_016.fwsc`.
@@ -40,7 +40,7 @@ Todas as mudanças valem só para o build do SMK-37 (`BOARD_SMK37`). O build do 
 | **Emulador do SMK-37 no navegador** | `web/emu/smk37.html` desenha o painel do SMK-37 (37 teclas com velocity, 16 pads coloridos, faders, rodas, K1–K8) e roda o mesmo firmware compilado para WebAssembly. Aceita mouse, teclado do PC e teclado MIDI. Gerar com `BOARD=smk37 sh web/emu/build.sh`. |
 | **Instalador local** | `smk37-extras/Abrir instalador.bat` grava este build pelo USB-MIDI do Chrome ou do Edge. O instalador do genkigenki só grava os firmwares do catálogo dele. |
 | **CI no GitHub Actions** | `.github/workflows/smk37.yml` compila os builds do FM-1 e do SMK-37 e roda os testes, incluindo `tests/scenarios/smk37/help.polly`. Também tira capturas de todas as telas nos três temas e gera o emulador. O firmware pronto sai como artefato. |
-| **Guia para iniciantes** | Em português, com o guia de teclas do SMK-37: `smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`. |
+| **Guia para iniciantes** | Com o guia de teclas do SMK-37, em português (`smk37-extras/docs/Guia-Polly-SMK37-iniciantes.pdf`) e em inglês (`smk37-extras/docs/Polly-SMK37-beginners-guide.pdf`). |
 
 Firmware não oficial e experimental: use por sua conta e risco. Para voltar ao firmware original, use o M-UPGRADE da
 M-Vave com o `SMK-37 Pro_016.fwsc`.

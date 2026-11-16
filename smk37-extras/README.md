@@ -25,6 +25,7 @@ Firmware não oficial e experimental: use por sua conta e risco.
 | `Abrir instalador.bat` | Abre o instalador local no navegador (Chrome ou Edge) e grava o firmware pelo USB. |
 | `Abrir emulador.bat` | Abre o emulador: o mesmo firmware rodando no navegador, sem o teclado. |
 | `docs/Guia-Polly-SMK37-iniciantes.pdf` | Guia para iniciantes, em português, com o guia de teclas. |
+| `docs/Polly-SMK37-beginners-guide.pdf` | O mesmo guia, em inglês. |
 | `docs/PLANO.md` | O plano do port (rotas, fases, riscos). |
 | `firmware/*.png` | Capturas das telas (nomes, temas, cartões de ajuda). |
 | `gerar-instalador.py` | Remonta `instalador/` a partir de `web/polly_installer.html` e do `.fwsc`. |
@@ -74,7 +75,8 @@ Unofficial, experimental firmware: use it at your own risk.
 | `firmware/polly-smk37.fwsc` | The firmware, ready to write to the SMK-37 Pro. |
 | `Abrir instalador.bat` | Opens the local installer in the browser (Chrome or Edge) and writes the firmware over USB. |
 | `Abrir emulador.bat` | Opens the emulator: the same firmware running in the browser, without the keyboard. |
-| `docs/Guia-Polly-SMK37-iniciantes.pdf` | Beginner's guide with a key guide, in Portuguese. |
+| `docs/Polly-SMK37-beginners-guide.pdf` | Beginner's guide with a key guide, in English. |
+| `docs/Guia-Polly-SMK37-iniciantes.pdf` | The same guide, in Portuguese. |
 | `docs/PLANO.md` | The port plan (routes, phases, risks), in Portuguese. |
 | `firmware/*.png` | Screenshots (names, themes, help cards). |
 | `gerar-instalador.py` | Rebuilds `instalador/` from `web/polly_installer.html` and the `.fwsc`. |
