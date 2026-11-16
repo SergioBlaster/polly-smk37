@@ -30,7 +30,7 @@ the FM-1. The SMK-37 adds the rest.
 | The middle 27 keys (F3..G5) | the FM-1's keys: chords on Home and the Progression page, the selected instrument on Band, Sound and Notes, sections and mutes on the Song page, a strip on the Mixer |
 | The outer 10 keys (C3..E3, G#5..C6) | play as the other keys do: in chords, and as notes of the selected instrument |
 | Key velocity | the instruments' notes play and record with the keys' velocity; a melody keeps its own VELOCITY setting |
-| Pads, top row | pads 1-6: Intro, Groove A, Groove B, Fill, Ending (as HOME + black keys 1-5), FOLLOW (no progression: the band follows your chords, as KNOB 4 at "follow"); pad 7: free (dark); pad 8: switches the bottom row between P1-P8 (blue) and P9-P16 (yellow) |
+| Pads, top row | pads 1-6: Intro, Groove A, Groove B, Fill, Ending (as HOME + black keys 1-5), FOLLOW (no progression: the band follows your chords, as KNOB 4 at "follow"); pad 7: Free play (in and out; dim, white while on: below); pad 8: switches the bottom row between P1-P8 (blue) and P9-P16 (yellow) |
 | Pads, bottom row | eight progressions, P1-P8 or P9-P16: a pad plays its progression (as HOME + a white key; the one playing again: follow). On the Song page it adds a section, as a white key there. Hold SAVE (BT) and press one to copy there, as SAVE + a white key |
 | Pad lights | the sections and FOLLOW light green: dim, bright for what plays (stopped: where PLAY starts). The progressions in their half's colour (P1-P8 blue, P9-P16 yellow) at three levels: pale when empty, brighter with chords, brightest playing (stopped: where PLAY starts). A change waiting for the bar line: the pad playing blinks, the one coming is light orange |
 | K1 | MASTER (volume) |
@@ -53,6 +53,15 @@ the FM-1. The SMK-37 adds the rest.
 | Mod wheel | vibrato (General MIDI modulation, up to +-1/2 semitone), on every channel but the drums' |
 | OCTAVE- + OCTAVE+ held 5 s | UPDATE MODE |
 | OCTAVE- + OCTAVE+ held at power-on | HARDWARE CALIBRATION: teach the buttons and knobs again (it asks by the SMK-37's names) |
+
+**Free play** (top pad 7, SMK-37 only): the band stops and the 37 keys play one GM sound (KNOB 1, kept with the
+project; PRESETS a family on), with velocity and the wheels, on MIDI channel 16 (the click's, free with the band
+stopped). The screen names the note, the two notes' interval or the chord (`chord_recognize`), and draws them on a
+grand staff: treble and bass clefs, ledger lines, sharps or flats by the chord's key (KNOB 4: auto, sharps, flats),
+8va / 8vb past three ledger lines (KNOB 3: the staff off, the name large). KNOB 2 is its volume and OCT its own
+octave, neither kept. Pads, faders, PLAY, REC, SEL, SAVE, SELECT, ALGORITHM and the four extra buttons do nothing
+there (each has its help card); pad 7 again goes back to the page it came from, a page button to its page. Nothing
+but the sound changes (`tests/scenarios/smk37/free.polly` checks the songs, progressions and project byte for byte).
 
 Only one bank mode is up at a time: FADER BANK puts the map away. The wheels never change what is saved: the
 bend is gone when the pitch wheel is back at rest, the vibrato with the mod wheel at zero. The SMK-37 has no key

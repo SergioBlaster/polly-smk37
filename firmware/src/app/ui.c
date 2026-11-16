@@ -2229,8 +2229,8 @@ static void holds(void)
             ui.card = (uint8_t)(b + 1);
             ui.btn_used |= 1u << b;
         }
-    if ((ui.btn >> B_HOME & 1u) && now - ui.btn_t[B_HOME] >= HOME_HOLD_MS)
-        ui.btn_used |= 1u << B_HOME;             /* HOME held to look (the loops, the sections): not a page press */
+    if ((ui.btn >> B_HOME & 1u) && now - ui.btn_t[B_HOME] >= HOME_HOLD_MS && !IS_FREE)
+        ui.btn_used |= 1u << B_HOME;   /* (Free play: no shortcuts; held, its card, as the other buttons) */             /* HOME held to look (the loops, the sections): not a page press */
 }
 
 /* another song: recording off, what changed saved (else nothing changes: the takes would be lost), its

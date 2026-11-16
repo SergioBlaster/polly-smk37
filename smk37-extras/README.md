@@ -12,6 +12,8 @@ acrescenta:
 - **Tela que se explica sozinha:** cada knob mostra o nome (K5–K8). KNOB BANK, FADER BANK, `<` e `>` têm cartão
   de ajuda quando segurados por 1 segundo. O K1 mostra o volume.
 - **Três temas de tela:** claro, escuro e neon. Para trocar: GLOBE, `>`, K5.
+- **Modo livre (pad 7 de cima):** toque livremente com qualquer timbre; a tela mostra a nota ou o acorde pelo nome e numa
+  partitura. Só o timbre fica salvo.
 - **Emulador no navegador** (`web/emu/smk37.html`) e CI no GitHub Actions (`.github/workflows/smk37.yml`), que
   compila o firmware, roda os testes e tira capturas de todas as telas nos três temas.
 
@@ -64,6 +66,8 @@ FM-1, running on the **M-Vave SMK-37 Pro**. It starts from the port in
 - **A screen that explains itself:** each knob shows its name (K5–K8). KNOB BANK, FADER BANK, `<` and `>` show a
   help card when held for a second. K1 shows the volume.
 - **Three screen themes:** light, dark and neon. To switch: GLOBE, `>`, K5.
+- **Free play (top pad 7):** play freely with any sound; the screen shows the note or chord by name and on a staff.
+  Only the sound is kept.
 - **A browser emulator** (`web/emu/smk37.html`) and CI on GitHub Actions (`.github/workflows/smk37.yml`). The CI
   builds the firmware, runs the tests and takes screenshots of every screen in the three themes.
 
